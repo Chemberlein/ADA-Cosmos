@@ -13,6 +13,7 @@ import {
 } from "@clerk/nextjs";
 import { Loader } from "lucide-react";
 import * as THREE from "three";
+import Link from "next/link";
 
 function SpinningLogo() {
 	const groupRef = useRef<THREE.Group>(null);
@@ -221,14 +222,17 @@ export default function LandingPage() {
 					</div>
 					<ul className="flex space-x-6">
 						<li>
-							<a href="#" className="hover:text-gray-300">
+							<Link
+								href="/dashboard"
+								className="hover:text-gray-300"
+							>
 								Home
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a href="#" className="hover:text-gray-300">
+							<Link href="#" className="hover:text-gray-300">
 								Features
-							</a>
+							</Link>
 						</li>
 						<li>
 							<ClerkLoading>
@@ -240,9 +244,9 @@ export default function LandingPage() {
 								</SignedIn>
 								<SignedOut>
 									<SignInButton mode="modal">
-										<a className="hover:text-gray-300 hover:cursor-pointer">
+										<p className="hover:text-gray-300 hover:cursor-pointer">
 											Sign-in
-										</a>
+										</p>
 									</SignInButton>
 								</SignedOut>
 							</ClerkLoaded>
@@ -262,9 +266,23 @@ export default function LandingPage() {
 						Reveal dynamic interconnections with real-time
 						blockchain data and topological analysis.
 					</h2>
-					<button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300">
-						Get Started
-					</button>
+					<ClerkLoading>
+						<Loader className="h-5 w-5 text-muted-foreground animate-spin" />
+					</ClerkLoading>
+					<ClerkLoaded>
+						<SignedIn>
+							<button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300">
+								<Link href="/dashboard">Dashboard</Link>
+							</button>
+						</SignedIn>
+						<SignedOut>
+							<SignInButton mode="modal">
+								<button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300">
+									Get Started
+								</button>
+							</SignInButton>
+						</SignedOut>
+					</ClerkLoaded>
 				</div>
 			</div>
 			<Canvas
