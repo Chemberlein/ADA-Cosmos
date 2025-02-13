@@ -1,5 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
-
+import { Calendar, Home, Inbox, Search, Settings, Loader } from "lucide-react";
 import {
 	Sidebar,
 	SidebarContent,
@@ -10,8 +9,9 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
+import { ClerkLoading, ClerkLoaded, UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "./ui/button";
 
 // Menu items.
 const items = [
@@ -62,8 +62,28 @@ export function AppSidebar() {
 							))}
 						</SidebarMenu>
 					</SidebarGroupContent>
-                </SidebarGroup>
-                <ThemeToggle />
+				</SidebarGroup>
+				<ThemeToggle />
+				<Button
+					variant="outline"
+					className="absolute bottom-0 right-0 mr-4 mb-4 rounded-md
+ p-0 w-10 h-10 flex items-center justify-center"
+				>
+					<ClerkLoading>
+						<Loader className="h-5 w-5 text-muted-foreground animate-spin" />
+					</ClerkLoading>
+					<ClerkLoaded>
+						<UserButton
+							appearance={{
+								elements: {
+									userButtonPopoverCard: {
+										pointerEvents: "initial",
+									},
+								},
+							}}
+						/>
+					</ClerkLoaded>
+				</Button>
 			</SidebarContent>
 		</Sidebar>
 	);
