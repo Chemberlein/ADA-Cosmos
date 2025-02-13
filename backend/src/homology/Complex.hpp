@@ -11,6 +11,8 @@ class Complex
 		std::vector<int> getNodesList() const;
 		int getAlpha() const;
 	private:
-		std::vector<int> m_nodes;
 		int m_alpha;
+		std::vector<int> m_nodes;
+		std::vector<std::shared_ptr<Complex>> m_childs;
+		std::vector<std::shared_ptr<Complex>> m_parents;
 }
