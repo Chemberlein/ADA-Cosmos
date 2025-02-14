@@ -1,6 +1,14 @@
 #include <iostream>
 
+void generateOutputData()
+{
+	// First things first we want to load data
+	Table t{"inputFileName"};
+	Bars b{t};
+	// Then we want to comput complex
+}
+
 int main() {
-	std::cout << "Hello budy what do you want to find in this old Commit ? "<<std::endl;
+	generateOutputData();	
 	return 0;
 }
