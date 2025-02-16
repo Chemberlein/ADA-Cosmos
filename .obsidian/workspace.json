@@ -11,10 +11,14 @@
             "id": "c8dbff76d0822354",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "backend/Backend agenda.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Backend agenda"
             }
           }
         ]
@@ -164,8 +168,12 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "c8dbff76d0822354",
+  "active": "d4639774dc1d097a",
   "lastOpenFiles": [
+    "backend/src/data/Computatuions.hpp",
+    "backend/src/data/Computatuions.cpp",
+    "backend/data/data.csv",
+    "backend/data",
     "PersistentHomologyGuidedForce-DirectedGraphLayouts.pdf",
     "PersistentHomologyGuidedForce-DirectedGraphLayouts 1.pdf",
     "backend/Backend agenda.md",
@@ -176,10 +184,6 @@
     "backend/src/graphs/ForceDirectedLayout.hpp",
     "backend/src/graphs/ForceDirectedLayout.cpp",
     "backend/src/homology/SimplicialComplex.hpp",
-    "backend/src/homology/SimplicialComplex.cpp",
-    "backend/src/data",
-    "backend/src/graphs",
-    "backend/src/dataprocessing",
     "README.md",
     "Agenda.md",
     "fronend/Frontend agenda.md"

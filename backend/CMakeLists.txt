@@ -13,10 +13,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     set(CMAKE_CXX_FLAGS_DEBUG       "${CMAKE_CXX_FLAGS_DEBUG} -save-temps=obj")
 endif()
 
-
 set(SOURCE_FILES
+	src/data/Computations.cpp
+	src/data/Computations.hpp
+	src/data/Table.cpp
+	src/data/Table.hpp
     src/main.cpp)
 
-add_executable(         HUTA ${SOURCE_FILES})
+add_executable(HUTA ${SOURCE_FILES})
 
 
