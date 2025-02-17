@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { TopTokenHolder } from '@/interfaces/tokens/tokenHolders';
 import { MarketTokensApiService } from '@/services/MarketTokensApiService';
+import { TopTokenHolder } from '@/interfaces/tokens';
 
-const TokensPage = () => {
+const TopTokenHolders = () => {
   const [topHolders, setTopHolders] = useState<TopTokenHolder[]>([]);
   const [error, setError] = useState<string>('');
 
@@ -41,4 +41,4 @@ const TokensPage = () => {
   );
 };
 
-export default TokensPage;
+export default TopTokenHolders;

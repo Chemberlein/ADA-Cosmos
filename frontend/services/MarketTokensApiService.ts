@@ -1,297 +1,293 @@
-import { ActiveLoan, LoanOffer } from '@/interfaces/tokens/tokenLoans';
-import { IMarketTokensApi } from '../interfaces/tokens/IMarketTokensApi';
 import {
-  TokenHoldersResponse,
-  TopTokenHolder,
-} from '@/interfaces/tokens/tokenHolders';
-import { TokenLinksResponse } from '@/interfaces/tokens/tokenLinks';
-import { TokenLiquidityPool } from '@/interfaces/tokens/tokenLiquidityPools';
-import { TokenMarketCapResponse } from '@/interfaces/tokens/tokenMarketCap';
-import { TokenOHLCV } from '@/interfaces/tokens/tokenOHLCV';
-import {
-  TokenPriceIndicatorResponse,
-  TokenPricesResponse,
-  TokenPricePercentChangeResponse,
-  QuotePriceResponse,
-  AvailableQuoteCurrenciesResponse,
-} from '@/interfaces/tokens/tokenPrices';
-import {
-  TopLiquidityToken,
-  TopMarketCapToken,
-  TopVolumeToken,
-} from '@/interfaces/tokens/tokenTopTokens';
-import { TokenTrade } from '@/interfaces/tokens/tokenTrades';
-import { TradingStatsResponse } from '@/interfaces/tokens/tokenTradingStats';
+	ActiveLoan,
+	LoanOffer,
+	TokenHoldersResponse,
+	TopTokenHolder,
+	TokenPriceIndicatorResponse,
+	TokenLinksResponse,
+	TokenMarketCapResponse,
+	TokenOHLCV,
+	TokenLiquidityPool,
+	TokenPricesResponse,
+	TokenPricePercentChangeResponse,
+	QuotePriceResponse,
+	AvailableQuoteCurrenciesResponse,
+	TopLiquidityToken,
+	TopMarketCapToken,
+	TopVolumeToken,
+	TokenTrade,
+	TradingStatsResponse,
+} from "@/interfaces/tokens";
+import { IMarketTokensApi } from "@/interfaces/tokens/IMarketTokensApi";
+import { BaseApiService } from ".";
 
-export class MarketTokensApiService implements IMarketTokensApi {
-  private baseUrl: string = process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!;
-  private apiKey: string = process.env.TAPTOOLS_API_KEY!;
+export class MarketTokensApiService
+	extends BaseApiService
+	implements IMarketTokensApi
+{
+	constructor() {
+		super(
+			process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!,
+			process.env.TAPTOOLS_API_KEY
+		);
+	}
 
-  /**
-   * Constructs a URL for API requests using the proxy base.
-   * @param endpoint - The TapTools API endpoint (leading slash removed if necessary).
-   * @param queryParams - Optional query parameters.
-   * @returns The full URL as a string.
-   */
-  private buildUrl(
-    endpoint: string,
-    queryParams?: Record<string, any>
-  ): string {
-    const url = new URL(this.baseUrl, window.location.origin);
-    url.searchParams.append(
-      'endpoint',
-      endpoint.startsWith('/') ? endpoint.substring(1) : endpoint
-    );
+	/**
+	 *  Get active P2P loans of a certain token (Currently only supports P2P protocols like Lenfi and Levvy).
+	 */
+	async getActiveLoans(
+		unit: string,
+		include: string = "collateral,debt",
+		sortBy: string = "time",
+		order: string = "desc",
+		page: number = 1,
+		perPage: number = 100
+	): Promise<ActiveLoan[]> {
+		return this.request<ActiveLoan[]>("/token/debt/loans", {
+			queryParams: { unit, include, sortBy, order, page, perPage },
+		});
+	}
 
-    if (queryParams) {
-      Object.keys(queryParams).forEach((key) => {
-        const value = queryParams[key];
-        if (value !== undefined && value !== null) {
-          url.searchParams.append(key, String(value));
-        }
-      });
-    }
-    return url.toString();
-  }
+	/**
+	 * Get active P2P loan offers that are not associated with any loans yet (Currently only supports P2P protocols like Lenfi and Levvy).
+	 */
+	async getLoanOffers(
+		unit: string,
+		include: string = "collateral,debt",
+		sortBy: string = "time",
+		order: string = "desc",
+		page: number = 1,
+		perPage: number = 100
+	): Promise<LoanOffer[]> {
+		return this.request<LoanOffer[]>("/token/debt/offers", {
+			queryParams: { unit, include, sortBy, order, page, perPage },
+		});
+	}
 
-  /**
-   * Generic request method to handle API calls.
-   */
-  private async request<T>(
-    endpoint: string,
-    options: {
-      method?: string;
-      queryParams?: Record<string, any>;
-      body?: any;
-    } = {}
-  ): Promise<T> {
-    const { method = 'GET', queryParams, body } = options;
-    const url = this.buildUrl(endpoint, queryParams);
+	/**
+	 * Get total number of holders for a specific token.
+	 * This uses coalesce(stake_address, address), so all addresses under one stake key will be aggregated into 1 holder.
+	 */
+	async getTokenHolders(unit: string): Promise<TokenHoldersResponse> {
+		return this.request<TokenHoldersResponse>("/token/holders", {
+			queryParams: { unit },
+		});
+	}
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (this.apiKey) {
-      headers['x-api-key'] = this.apiKey;
-    }
+	/**
+	 * Get top token holders.
+	 */
+	async getTopTokenHolders(
+		unit: string,
+		page: number = 1,
+		perPage: number = 20
+	): Promise<TopTokenHolder[]> {
+		return this.request<TopTokenHolder[]>("/token/holders/top", {
+			queryParams: { unit, page, perPage },
+		});
+	}
 
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+	/**
+	 * Get indicator values (e.g. EMA, RSI) based on price data for a specific token.
+	 * There are multiple parameters that can be passed, but some only apply to certain indicators.
+	 * This will return the most recent values.
+	 */
+	async getTokenPriceIndicators(
+		unit: string,
+		interval: string,
+		items: number,
+		indicator: string,
+		length: number,
+		smoothingFactor: number,
+		fastLength?: number,
+		slowLength?: number,
+		signalLength?: number,
+		stdMult?: number,
+		quote: string = "ADA"
+	): Promise<TokenPriceIndicatorResponse> {
+		return this.request<TokenPriceIndicatorResponse>("/token/indicators", {
+			queryParams: {
+				unit,
+				interval,
+				items,
+				indicator,
+				length,
+				smoothingFactor,
+				fastLength,
+				slowLength,
+				signalLength,
+				stdMult,
+				quote,
+			},
+		});
+	}
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-    return response.json();
-  }
+	/**
+	 * Get a specific token's social links, if they have been provided to TapTools.
+	 */
+	async getTokenLinks(unit: string): Promise<TokenLinksResponse> {
+		return this.request<TokenLinksResponse>("/token/links", {
+			queryParams: { unit },
+		});
+	}
 
-  // Each of the following methods wraps a specific API endpoint.
+	/**
+	 * Get a specific token's supply and market cap information. We pull circulating supply information from this repo.
+	 */
+	async getTokenMarketCap(unit: string): Promise<TokenMarketCapResponse> {
+		return this.request<TokenMarketCapResponse>("/token/mcap", {
+			queryParams: { unit },
+		});
+	}
 
-  async getActiveLoans(
-    unit: string,
-    include: string = 'collateral,debt',
-    sortBy: string = 'time',
-    order: string = 'desc',
-    page: number = 1,
-    perPage: number = 100
-  ): Promise<ActiveLoan[]> {
-    return this.request<ActiveLoan[]>('/token/debt/loans', {
-      queryParams: { unit, include, sortBy, order, page, perPage },
-    });
-  }
+	/**
+	 * Get a specific token's trended (open, high, low, close, volume) price data.
+	 * You can either pass a token unit to get aggregated data across all liquidity pools, or an onchainID for a specific pair (see /token/pools).
+	 */
+	async getTokenPriceOHLCV(
+		unit: string,
+		onchainID: string,
+		interval: string,
+		numIntervals: number
+	): Promise<TokenOHLCV[]> {
+		return this.request<TokenOHLCV[]>("/token/ohlcv", {
+			queryParams: { unit, onchainID, interval, numIntervals },
+		});
+	}
 
-  async getLoanOffers(
-    unit: string,
-    include: string = 'collateral,debt',
-    sortBy: string = 'time',
-    order: string = 'desc',
-    page: number = 1,
-    perPage: number = 100
-  ): Promise<LoanOffer[]> {
-    return this.request<LoanOffer[]>('/token/debt/offers', {
-      queryParams: { unit, include, sortBy, order, page, perPage },
-    });
-  }
+	/**
+	 * Get a specific token's active liquidity pools. Can search for all token pools using unit or can search for specific pool with onchainID.
+	 */
+	async getTokenLiquidityPools(
+		unit: string,
+		onchainID?: string,
+		adaOnly?: number
+	): Promise<TokenLiquidityPool[]> {
+		return this.request<TokenLiquidityPool[]>("/token/pools", {
+			queryParams: { unit, onchainID, adaOnly },
+		});
+	}
 
-  async getTokenHolders(unit: string): Promise<TokenHoldersResponse> {
-    return this.request<TokenHoldersResponse>('/token/holders', {
-      queryParams: { unit },
-    });
-  }
+	/**
+	 * Get an object with token units (policy + hex name) as keys and price as values for a list of policies and hex names.
+	 * These prices are aggregated across all supported DEXs. Max batch size is 100 tokens.
+	 */
+	async postTokenPrices(tokenUnits: string[]): Promise<TokenPricesResponse> {
+		return this.request<TokenPricesResponse>("/token/prices", {
+			method: "POST",
+			body: tokenUnits,
+		});
+	}
 
-  async getTopTokenHolders(
-    unit: string,
-    page: number = 1,
-    perPage: number = 20
-  ): Promise<TopTokenHolder[]> {
-    return this.request<TopTokenHolder[]>('/token/holders/top', {
-      queryParams: { unit, page, perPage },
-    });
-  }
+	/**
+	 * Get a specific token's price percent change over various timeframes.
+	 * Timeframe options include [5m, 1h, 4h, 6h, 24h, 7d, 30d, 60d, 90d]. All timeframes are returned by default.
+	 */
+	async getTokenPricePercentChange(
+		unit: string,
+		timeframes: string
+	): Promise<TokenPricePercentChangeResponse> {
+		return this.request<TokenPricePercentChangeResponse>(
+			"/market/tokens/price-percent-change",
+			{
+				queryParams: { unit, timeframes },
+			}
+		);
+	}
 
-  async getTokenPriceIndicators(
-    unit: string,
-    interval: string,
-    items: number,
-    indicator: string,
-    length: number,
-    smoothingFactor: number,
-    fastLength?: number,
-    slowLength?: number,
-    signalLength?: number,
-    stdMult?: number,
-    quote: string = 'ADA'
-  ): Promise<TokenPriceIndicatorResponse> {
-    return this.request<TokenPriceIndicatorResponse>(
-      '/token/indicators',
-      {
-        queryParams: {
-          unit,
-          interval,
-          items,
-          indicator,
-          length,
-          smoothingFactor,
-          fastLength,
-          slowLength,
-          signalLength,
-          stdMult,
-          quote,
-        },
-      }
-    );
-  }
+	/**
+	 * Get current quote price (e.g, current ADA/USD price).
+	 */
+	async getQuotePrice(quote: string): Promise<QuotePriceResponse> {
+		return this.request<QuotePriceResponse>("/token/quote", {
+			queryParams: { quote },
+		});
+	}
 
-  async getTokenLinks(unit: string): Promise<TokenLinksResponse> {
-    return this.request<TokenLinksResponse>('/token/links', {
-      queryParams: { unit },
-    });
-  }
+	/**
+	 * Get all currently available quote currencies.
+	 */
+	async getAvailableQuoteCurrencies(): Promise<AvailableQuoteCurrenciesResponse> {
+		return this.request<AvailableQuoteCurrenciesResponse>(
+			"/token/quote/avaliable"
+		);
+	}
 
-  async getTokenMarketCap(unit: string): Promise<TokenMarketCapResponse> {
-    return this.request<TokenMarketCapResponse>('/token/mcap', {
-      queryParams: { unit },
-    });
-  }
+	/**
+	 * Get tokens ranked by their DEX liquidity. This includes both AMM and order book liquidity.
+	 */
+	async getTopLiquidityTokens(
+		page: number = 1,
+		perPage: number = 10
+	): Promise<TopLiquidityToken[]> {
+		return this.request<TopLiquidityToken[]>("/token/top/liquidity", {
+			queryParams: { page, perPage },
+		});
+	}
 
-  async getTokenPriceOHLCV(
-    unit: string,
-    onchainID: string,
-    interval: string,
-    numIntervals: number
-  ): Promise<TokenOHLCV[]> {
-    return this.request<TokenOHLCV[]>('/token/ohlcv', {
-      queryParams: { unit, onchainID, interval, numIntervals },
-    });
-  }
+	/**
+	 * Get tokens with top market cap in a descending order.
+	 * This endpoint does exclude deprecated tokens (e.g. MELD V1 since there was a token migration to MELD V2).
+	 */
+	async getTopMarketCapTokens(
+		type: string,
+		page: number = 1,
+		perPage: number = 20
+	): Promise<TopMarketCapToken[]> {
+		return this.request<TopMarketCapToken[]>("/token/top/mcap", {
+			queryParams: { type, page, perPage },
+		});
+	}
 
-  async getTokenLiquidityPools(
-    unit: string,
-    onchainID?: string,
-    adaOnly?: number
-  ): Promise<TokenLiquidityPool[]> {
-    return this.request<TokenLiquidityPool[]>(
-      '/token/pools',
-      {
-        queryParams: { unit, onchainID, adaOnly },
-      }
-    );
-  }
+	/**
+	 * Get tokens with top volume for a given timeframe.
+	 */
+	async getTopVolumeTokens(
+		timeframe: string,
+		page: number = 1,
+		perPage: number = 20
+	): Promise<TopVolumeToken[]> {
+		return this.request<TopVolumeToken[]>("/token/top/volume", {
+			queryParams: { timeframe, page, perPage },
+		});
+	}
 
-  async postTokenPrices(tokenUnits: string[]): Promise<TokenPricesResponse> {
-    return this.request<TokenPricesResponse>('/token/prices', {
-      method: 'POST',
-      body: tokenUnits,
-    });
-  }
+	/**
+	 * Get token trades across the entire DEX market.
+	 */
+	async getTokenTrades(
+		timeframe: string,
+		sortBy: string,
+		order: string,
+		unit?: string,
+		minAmount?: number,
+		from?: number,
+		page: number = 1,
+		perPage: number = 10
+	): Promise<TokenTrade[]> {
+		return this.request<TokenTrade[]>("/token/trades", {
+			queryParams: {
+				timeframe,
+				sortBy,
+				order,
+				unit,
+				minAmount,
+				from,
+				page,
+				perPage,
+			},
+		});
+	}
 
-  async getTokenPricePercentChange(
-    unit: string,
-    timeframes: string
-  ): Promise<TokenPricePercentChangeResponse> {
-    return this.request<TokenPricePercentChangeResponse>(
-      '/market/tokens/price-percent-change',
-      {
-        queryParams: { unit, timeframes },
-      }
-    );
-  }
-
-  async getQuotePrice(quote: string): Promise<QuotePriceResponse> {
-    return this.request<QuotePriceResponse>('/token/quote', {
-      queryParams: { quote },
-    });
-  }
-
-  async getAvailableQuoteCurrencies(): Promise<AvailableQuoteCurrenciesResponse> {
-    return this.request<AvailableQuoteCurrenciesResponse>(
-      '/token/quote/avaliable'
-    );
-  }
-
-  async getTopLiquidityTokens(
-    page: number = 1,
-    perPage: number = 10
-  ): Promise<TopLiquidityToken[]> {
-    return this.request<TopLiquidityToken[]>(
-      '/token/top/liquidity',
-      { queryParams: { page, perPage } }
-    );
-  }
-
-  async getTopMarketCapTokens(
-    type: string,
-    page: number = 1,
-    perPage: number = 20
-  ): Promise<TopMarketCapToken[]> {
-    return this.request<TopMarketCapToken[]>(
-      '/token/top/mcap',
-      { queryParams: { type, page, perPage } }
-    );
-  }
-
-  async getTopVolumeTokens(
-    timeframe: string,
-    page: number = 1,
-    perPage: number = 20
-  ): Promise<TopVolumeToken[]> {
-    return this.request<TopVolumeToken[]>('/token/top/volume', {
-      queryParams: { timeframe, page, perPage },
-    });
-  }
-
-  async getTokenTrades(
-    timeframe: string,
-    sortBy: string,
-    order: string,
-    unit?: string,
-    minAmount?: number,
-    from?: number,
-    page: number = 1,
-    perPage: number = 10
-  ): Promise<TokenTrade[]> {
-    return this.request<TokenTrade[]>('/token/trades', {
-      queryParams: {
-        timeframe,
-        sortBy,
-        order,
-        unit,
-        minAmount,
-        from,
-        page,
-        perPage,
-      },
-    });
-  }
-
-  async getTradingStats(
-    unit: string,
-    timeframe: string
-  ): Promise<TradingStatsResponse> {
-    return this.request<TradingStatsResponse>('/token/trading/stats', {
-      queryParams: { unit, timeframe },
-    });
-  }
+	/**
+	 * Get aggregated trading stats for a particular token.
+	 */
+	async getTradingStats(
+		unit: string,
+		timeframe: string
+	): Promise<TradingStatsResponse> {
+		return this.request<TradingStatsResponse>("/token/trading/stats", {
+			queryParams: { unit, timeframe },
+		});
+	}
 }
