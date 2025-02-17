@@ -25,13 +25,6 @@ export class MarketTokensApiService
 	extends BaseApiService
 	implements IMarketTokensApi
 {
-	constructor() {
-		super(
-			process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!,
-			process.env.TAPTOOLS_API_KEY
-		);
-	}
-
 	/**
 	 *  Get active P2P loans of a certain token (Currently only supports P2P protocols like Lenfi and Levvy).
 	 */

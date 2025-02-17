@@ -2,7 +2,10 @@ export abstract class BaseApiService {
 	protected baseUrl: string;
 	protected apiKey?: string;
 
-	constructor(baseUrl: string, apiKey?: string) {
+	constructor(
+		baseUrl: string = process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!,
+		apiKey: string = process.env.TAPTOOLS_API_KEY!
+	) {
 		this.baseUrl = baseUrl;
 		this.apiKey = apiKey;
 	}

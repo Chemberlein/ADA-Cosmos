@@ -6,13 +6,6 @@ export class IntegrationApiService
 	extends BaseApiService
 	implements IIntegrationApi
 {
-	constructor() {
-		super(
-			process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!,
-			process.env.TAPTOOLS_API_KEY!
-		);
-	}
-
 	/**
 	 *  Returns details of a given token by its address.
 	 */

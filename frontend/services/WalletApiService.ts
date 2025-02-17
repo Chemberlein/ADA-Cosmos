@@ -7,13 +7,6 @@ import {
 } from "@/interfaces/wallet";
 
 export class WalletApiService extends BaseApiService implements IWalletApi {
-	constructor() {
-		super(
-			process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!,
-			process.env.TAPTOOLS_API_KEY
-		);
-	}
-
 	/**
 	 * Get wallet portfolio positions.
 	 * GET /wallet/portfolio/positions
