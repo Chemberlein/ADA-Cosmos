@@ -221,6 +221,7 @@ export class MarketTokensApiService
 	/**
 	 * Get tokens with top market cap in a descending order.
 	 * This endpoint does exclude deprecated tokens (e.g. MELD V1 since there was a token migration to MELD V2).
+	 * type:Options [mcap, fdv].
 	 */
 	async getTopMarketCapTokens(
 		type: string,
