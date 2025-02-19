@@ -63,7 +63,7 @@ export default function Component() {
 			ctx.fillStyle = "rgba(1, 51, 174, 0.8)";
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			drawHalftoneWave();
-			time += 0.03;
+			time += 0.045;
 			animationFrameId = requestAnimationFrame(animate);
 		};
 

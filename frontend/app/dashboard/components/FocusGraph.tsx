@@ -6,17 +6,24 @@ import { useApi } from "@/hooks/useApi";
 import ReactDOMServer from "react-dom/server";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-const MAX_NODE_SIZE = 80;
-const MAX_ORBIT_RADIUS = 800; // maximum radius for the outer orbit
+const MAX_NODE_SIZE = 750;
 
-// Helper: Create a polar grid (bullseye) as a Three.js Group
+// Adjustable variables:
+// orbitGap controls the distance between orbit lines (and between nodes)
+// offset controls the multiplier for the first node (e.g. offset = 4.2 puts the first node at 4.2 * orbitGap)
+const orbitGap = 100; // Change this to adjust the gap between orbit lines
+const offset = 3; // First node's multiplier (adjust for closer or farther starting position)
+
+// Helper: Create a polar grid with circles at the exact node orbit radii
 function createPolarGrid({
-	radius = 500,
-	circles = 5,
+	orbitGap,
+	offset,
+	circles,
 	radialLines = 12,
 }: {
-	radius?: number;
-	circles?: number;
+	orbitGap: number;
+	offset: number;
+	circles: number;
 	radialLines?: number;
 }) {
 	const gridGroup = new THREE.Group();
@@ -29,8 +36,9 @@ function createPolarGrid({
 	});
 
 	const segments = 64;
-	for (let i = 1; i <= circles; i++) {
-		const circleRadius = (i / circles) * radius;
+	// Draw one circle per node orbit:
+	for (let i = 0; i < circles; i++) {
+		const circleRadius = (offset + i) * orbitGap;
 		const circlePoints: THREE.Vector3[] = [];
 		for (let j = 0; j <= segments; j++) {
 			const theta = (j / segments) * 2 * Math.PI;
@@ -49,21 +57,24 @@ function createPolarGrid({
 		gridGroup.add(circle);
 	}
 
-	// Create the central green dot
-	const dotGeometry = new THREE.SphereGeometry(3, 16, 16);
-	const dotMaterial = new THREE.MeshBasicMaterial({
-		color: 0x00ff00,
+	// Create the central sun with an emissive material
+	const sunGeometry = new THREE.SphereGeometry(50, 52, 52);
+	const sunMaterial = new THREE.MeshPhongMaterial({
+		color: 0xffffdd,
+		emissive: 0xffffee,
+		emissiveIntensity: 1,
 		depthTest: false,
 	});
-	const dotMesh = new THREE.Mesh(dotGeometry, dotMaterial);
-	gridGroup.add(dotMesh);
+	const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+	gridGroup.add(sunMesh);
 
-	// Rotate grid so it lies on the XZ plane (with Y as up)
+	// Rotate the grid so it lies on the XZ plane (with Y up)
 	gridGroup.rotation.x = -Math.PI / 2;
 
 	return gridGroup;
 }
 
+// Helper: Render node label as static markup (using a simple HTML table)
 const renderNodeLabel = (node: any) => {
 	return ReactDOMServer.renderToStaticMarkup(
 		<table className="border-collapse text-center">
@@ -96,34 +107,29 @@ const CardanoTokensGraph = () => {
 	} = useApi(() => marketTokensApi.getTopMarketCapTokens("mcap", 1, 10), []);
 
 	const fgRef = useRef<any>();
-	// Ref to store original positions keyed by node id
-	const originalPositions = useRef<{
-		[key: string]: { x: number; y: number; z: number };
-	}>({});
 
-	// Compute nodes and store original positions
-	let nodes: any = [];
-	let links: any = [];
+	let nodes: any[] = [];
+	let links: any[] = [];
 	if (tokens && tokens.length > 0) {
-		const maxMcap = Math.max(...tokens.map((token) => token.mcap));
-		const n = tokens.length;
 		nodes = tokens.map((token, i) => {
-			const orbitRadius = ((i + 1) / n) * MAX_ORBIT_RADIUS;
-			const angle = Math.random() * 2 * Math.PI; // initial random angle
+			// Calculate orbit radius based on adjustable gap and offset
+			const orbitRadius = (offset + i) * orbitGap;
+			// Choose a random angle (in radians) for the node's position along its orbit
+			const angle = Math.random() * 2 * Math.PI;
 			const x = orbitRadius * Math.cos(angle);
 			const z = orbitRadius * Math.sin(angle);
-
-			originalPositions.current[token.unit] = { x, y: 0, z };
 
 			return {
 				id: token.unit,
 				name: token.ticker,
 				marketCap: token.mcap,
-				val: (token.mcap / maxMcap) * MAX_NODE_SIZE,
+				val:
+					(token.mcap / Math.max(...tokens.map((t) => t.mcap))) *
+					MAX_NODE_SIZE,
 				x,
 				y: 0,
 				z,
-				// Fix the node at its initial position
+				// Fix the node in position
 				fx: x,
 				fy: 0,
 				fz: z,
@@ -133,24 +139,16 @@ const CardanoTokensGraph = () => {
 		});
 	}
 
-	// Animate nodes along their orbit path
-	// useEffect(() => {
-	//   let animationFrameId: number;
-	//   const animate = () => {
-	//     nodes.forEach((node) => {
-	//       const speed = 0.00013;
-	//       node.angle += speed;
-	//       node.fx = node.orbitRadius * Math.cos(node.angle);
-	//       node.fz = node.orbitRadius * Math.sin(node.angle);
-	//     });
-	//     if (fgRef.current) {
-	//       fgRef.current.refresh();
-	//     }
-	//     animationFrameId = requestAnimationFrame(animate);
-	//   };
-	//   animationFrameId = requestAnimationFrame(animate);
-	//   return () => cancelAnimationFrame(animationFrameId);
-	// }, [nodes]);
+	// Set the initial camera position once the tokens data is loaded
+	useEffect(() => {
+		if (fgRef.current && tokens && tokens.length > 0) {
+			fgRef.current.cameraPosition(
+				{ x: -1300, y: 1300, z: 500 },
+				{ x: 0, y: 0, z: 0 },
+				0
+			);
+		}
+	}, [tokens]);
 
 	// Add the polar grid to the scene
 	useEffect(() => {
@@ -163,7 +161,8 @@ const CardanoTokensGraph = () => {
 					const scene = fgRef.current.scene();
 					if (scene && !scene.getObjectByName("polar-grid")) {
 						const polarGrid = createPolarGrid({
-							radius: MAX_ORBIT_RADIUS,
+							orbitGap,
+							offset,
 							circles: tokens.length,
 							radialLines: 16,
 						});
@@ -207,29 +206,14 @@ const CardanoTokensGraph = () => {
 	}, []);
 
 	// Click-to-focus: animate camera to the clicked node
-	interface Node {
-		id: string;
-		name: string;
-		marketCap: number;
-		val: number;
-		x: number;
-		y: number;
-		z: number;
-		fx: number;
-		fy: number;
-		fz: number;
-		orbitRadius: number;
-		angle: number;
-	}
-
-	const handleNodeClick = useCallback((node: Node) => {
-		const distance = 200;
+	const handleNodeClick = useCallback((node: any) => {
+		const distance = 400;
 		const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
 		fgRef.current.cameraPosition(
 			{
-				x: node.x * distRatio + 5,
-				y: node.y * distRatio + 10,
-				z: node.z * distRatio,
+				x: node.x * distRatio + 200,
+				y: node.y * distRatio + 200,
+				z: node.z * distRatio - 700,
 			},
 			node,
 			3000
