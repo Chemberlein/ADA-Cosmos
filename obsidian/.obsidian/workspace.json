@@ -11,17 +11,14 @@
             "id": "c8dbff76d0822354",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "frontend/frontend canvas.canvas",
-                "viewState": {
-                  "x": 329.669589383506,
-                  "y": 414.3488039985145,
-                  "zoom": -0.6009521484375002
-                }
+                "file": "Agenda.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "frontend canvas"
+              "icon": "lucide-file",
+              "title": "Agenda"
             }
           }
         ]
@@ -43,7 +40,8 @@
             "state": {
               "type": "file-explorer",
               "state": {
-                "sortOrder": "alphabetical"
+                "sortOrder": "alphabetical",
+                "autoReveal": false
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -172,6 +170,9 @@
   },
   "active": "c8dbff76d0822354",
   "lastOpenFiles": [
+    "frontend/frontend canvas.canvas",
+    "Agenda.md",
+    "Backend agenda.md",
     "attachment images/landing page.png",
     "attachment images/Pasted image 20250219150026.png",
     "attachment images/Pasted image 20250219150007.png",
@@ -182,12 +183,8 @@
     "attachment images/Pasted image 20250219145745.png",
     "attachment images/Pasted image 20250219145736.png",
     "attachment images/Pasted image 20250219145632.png",
-    "attachment images/Pasted image 20250219145611.png",
-    "frontend/frontend canvas.canvas",
     "attachment images",
-    "Agenda.md",
     "frontend/Untitled.md",
-    "Backend agenda.md",
     "frontend",
     "backend/src/data/Computatuions.hpp",
     "backend/src/data/Computatuions.cpp",
