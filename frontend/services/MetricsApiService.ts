@@ -7,7 +7,8 @@ import { RequestMetric, MarketStatsResponse } from '@/interfaces/metrics';
 export class MetricsApiService extends BaseApiService implements IMetricsApi {
   /**
    * Get the number of requests made by day over the last 30d.
-   * GET /metrics
+   * 
+   * @returns {Promise<RequestMetric[]>} A promise that resolves to the request metrics.
    */
   async getRequestMetrics(): Promise<RequestMetric[]> {
     return this.request<RequestMetric[]>('/metrics');
@@ -15,8 +16,7 @@ export class MetricsApiService extends BaseApiService implements IMetricsApi {
 
   /**
    * Get aggregated market stats, including 24h DEX volume and total active addresses.
-   * GET /market/stats
-   *
+   * 
    * @param quote {string} - Quote currency to use (e.g., ADA, USD, EUR, ETH, BTC). Optional; defaults to "ADA".
    * @returns {Promise<MarketStatsResponse>} A promise that resolves to the market stats response.
    */
