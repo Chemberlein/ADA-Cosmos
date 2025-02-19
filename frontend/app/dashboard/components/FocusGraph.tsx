@@ -1,12 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
 import { MarketTokensApiService } from '@/services/MarketTokensApiService';
 import { useApi } from '@/hooks/useApi';
 import ReactDOMServer from 'react-dom/server';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-const MAX_NODE_SIZE = 100;
-const MAX_ORBIT_RADIUS = 500; // maximum radius for the outer orbit
+const MAX_NODE_SIZE = 80;
+const MAX_ORBIT_RADIUS = 800; // maximum radius for the outer orbit
 
 // Helper: Create a polar grid (bullseye) as a Three.js Group
 function createPolarGrid({
@@ -28,9 +29,7 @@ function createPolarGrid({
   });
 
   const segments = 64;
-  // Draw every circle (one per orbit)
   for (let i = 1; i <= circles; i++) {
-    // Each circle's radius is proportional to i
     const circleRadius = (i / circles) * radius;
     const circlePoints: THREE.Vector3[] = [];
     for (let j = 0; j <= segments; j++) {
@@ -93,7 +92,7 @@ const CardanoTokensGraph = () => {
     error,
   } = useApi(() => marketTokensApi.getTopMarketCapTokens('mcap', 1, 10), []);
 
-  const fgRef = useRef();
+  const fgRef = useRef<any>();
   // Ref to store original positions keyed by node id
   const originalPositions = useRef({});
 
@@ -105,12 +104,10 @@ const CardanoTokensGraph = () => {
     const n = tokens.length;
     nodes = tokens.map((token, i) => {
       const orbitRadius = ((i + 1) / n) * MAX_ORBIT_RADIUS;
-      // Random angle for a random position along the orbit circle
-      const angle = Math.random() * 2 * Math.PI;
+      const angle = Math.random() * 2 * Math.PI; // initial random angle
       const x = orbitRadius * Math.cos(angle);
       const z = orbitRadius * Math.sin(angle);
 
-      // Store original position for resetting later
       originalPositions.current[token.unit] = { x, y: 0, z };
 
       return {
@@ -121,15 +118,36 @@ const CardanoTokensGraph = () => {
         x,
         y: 0,
         z,
-        // Initially fix the node at its original position
+        // Fix the node at its initial position
         fx: x,
         fy: 0,
         fz: z,
+        orbitRadius,
+        angle,
       };
     });
   }
 
-  // Add the polar grid (as before)
+  // Animate nodes along their orbit path
+  // useEffect(() => {
+  //   let animationFrameId: number;
+  //   const animate = () => {
+  //     nodes.forEach((node) => {
+  //       const speed = 0.00013;
+  //       node.angle += speed;
+  //       node.fx = node.orbitRadius * Math.cos(node.angle);
+  //       node.fz = node.orbitRadius * Math.sin(node.angle);
+  //     });
+  //     if (fgRef.current) {
+  //       fgRef.current.refresh();
+  //     }
+  //     animationFrameId = requestAnimationFrame(animate);
+  //   };
+  //   animationFrameId = requestAnimationFrame(animate);
+  //   return () => cancelAnimationFrame(animationFrameId);
+  // }, [nodes]);
+
+  // Add the polar grid to the scene
   useEffect(() => {
     if (tokens && tokens.length > 0) {
       const interval = setInterval(() => {
@@ -151,6 +169,38 @@ const CardanoTokensGraph = () => {
     }
   }, [tokens]);
 
+  // Add bloom effect to the scene once the composer is available
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (
+        fgRef.current &&
+        typeof fgRef.current.postProcessingComposer === 'function'
+      ) {
+        const composer = fgRef.current.postProcessingComposer();
+        if (composer) {
+          const bloomPass = new UnrealBloomPass();
+          bloomPass.strength = 3;
+          bloomPass.radius = 1;
+          bloomPass.threshold = 0;
+          composer.addPass(bloomPass);
+          clearInterval(interval);
+        }
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Click-to-focus: animate camera to the clicked node
+  const handleNodeClick = useCallback((node) => {
+    const distance = 200;
+    const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+    fgRef.current.cameraPosition(
+      { x: node.x * distRatio + 5, y: node.y * distRatio + 10, z: node.z * distRatio },
+      node,
+      3000
+    );
+  }, []);
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!tokens) return <div>No data available</div>;
@@ -163,38 +213,12 @@ const CardanoTokensGraph = () => {
         ref={fgRef}
         width={1300}
         height={950}
-        backgroundColor="#080808"
+        backgroundColor="#000000"
         graphData={graphData}
         nodeLabel={renderNodeLabel}
         nodeAutoColorBy="name"
-        // Reset node to original position when dragging ends
-        onNodeDragEnd={(node) => {
-          const orig = originalPositions.current[node.id];
-          if (!orig) return;
-          const duration = 1000; // animation duration in ms
-          const startTime = performance.now();
-          // Capture the node's current position at drag end
-          const startPos = { x: node.x, y: node.y, z: node.z };
-          // Easing function (cubic ease-out)
-          const easeOutCubic = (t) => --t * t * t + 1;
-
-          const animate = (time) => {
-            const elapsed = time - startTime;
-            const t = Math.min(elapsed / duration, 1);
-            const easedT = easeOutCubic(t);
-            // Interpolate positions
-            node.fx = startPos.x + (orig.x - startPos.x) * easedT;
-            node.fy = startPos.y + (orig.y - startPos.y) * easedT;
-            node.fz = startPos.z + (orig.z - startPos.z) * easedT;
-
-            // Continue animation until complete
-            if (t < 1) {
-              requestAnimationFrame(animate);
-            }
-          };
-
-          requestAnimationFrame(animate);
-        }}
+        enableNodeDrag={false}
+        onNodeClick={handleNodeClick}
       />
     </div>
   );
