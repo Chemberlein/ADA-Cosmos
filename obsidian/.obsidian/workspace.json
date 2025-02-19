@@ -11,14 +11,17 @@
             "id": "c8dbff76d0822354",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "canvas",
               "state": {
-                "file": "backend/Backend agenda.md",
-                "mode": "source",
-                "source": false
+                "file": "frontend/frontend canvas.canvas",
+                "viewState": {
+                  "x": 329.669589383506,
+                  "y": 414.3488039985145,
+                  "zoom": -0.6009521484375002
+                }
               },
-              "icon": "lucide-file",
-              "title": "Backend agenda"
+              "icon": "lucide-layout-dashboard",
+              "title": "frontend canvas"
             }
           }
         ]
@@ -40,8 +43,7 @@
             "state": {
               "type": "file-explorer",
               "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
+                "sortOrder": "alphabetical"
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -168,8 +170,25 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "d4639774dc1d097a",
+  "active": "c8dbff76d0822354",
   "lastOpenFiles": [
+    "attachment images/landing page.png",
+    "attachment images/Pasted image 20250219150026.png",
+    "attachment images/Pasted image 20250219150007.png",
+    "attachment images/Pasted image 20250219145917.png",
+    "attachment images/Pasted image 20250219145905.png",
+    "attachment images/Pasted image 20250219145809.png",
+    "attachment images/Pasted image 20250219145757.png",
+    "attachment images/Pasted image 20250219145745.png",
+    "attachment images/Pasted image 20250219145736.png",
+    "attachment images/Pasted image 20250219145632.png",
+    "attachment images/Pasted image 20250219145611.png",
+    "frontend/frontend canvas.canvas",
+    "attachment images",
+    "Agenda.md",
+    "frontend/Untitled.md",
+    "Backend agenda.md",
+    "frontend",
     "backend/src/data/Computatuions.hpp",
     "backend/src/data/Computatuions.cpp",
     "backend/data/data.csv",
@@ -181,11 +200,7 @@
     "resources/Resources and references.md",
     "backend/src/data/Table.hpp",
     "backend/src/data/Table.cpp",
-    "backend/src/graphs/ForceDirectedLayout.hpp",
-    "backend/src/graphs/ForceDirectedLayout.cpp",
-    "backend/src/homology/SimplicialComplex.hpp",
     "README.md",
-    "Agenda.md",
     "fronend/Frontend agenda.md"
   ]
 }
