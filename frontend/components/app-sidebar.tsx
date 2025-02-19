@@ -7,6 +7,7 @@ import {
   Loader,
   ChartLine,
   Radar,
+  Table
 } from 'lucide-react';
 import {
   Sidebar,
@@ -33,6 +34,11 @@ const items = [
     title: 'Radar',
     url: '/scan',
     icon: Radar,
+  },
+  {
+    title: 'Tables',
+    url: '/tables',
+    icon: Table,
   },
   {
     title: 'Search',
