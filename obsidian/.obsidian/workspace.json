@@ -20,8 +20,26 @@
               "icon": "lucide-file",
               "title": "Agenda"
             }
+          },
+          {
+            "id": "16e94614b314e081",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "frontend/frontend canvas.canvas",
+                "viewState": {
+                  "x": -77.46223138883101,
+                  "y": 303.7301944239882,
+                  "zoom": 0.007444812161164438
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "frontend canvas"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -168,10 +186,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "c8dbff76d0822354",
+  "active": "16e94614b314e081",
   "lastOpenFiles": [
-    "frontend/frontend canvas.canvas",
     "Agenda.md",
+    "frontend/frontend canvas.canvas",
     "Backend agenda.md",
     "attachment images/landing page.png",
     "attachment images/Pasted image 20250219150026.png",
