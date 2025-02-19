@@ -1,11 +1,15 @@
 #include "Table.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 namespace table
 {
+
+using json = nlohmann::json;
 
 bool isFloat(const std::string& segment) {
     std::istringstream iss(segment);
@@ -21,7 +25,7 @@ bool isInt(const std::string& segment) {
 	return iss.eof() && !iss.fail();
 }
 
-void parseString(std::string& line, std::vector<std::string>& subStrings, char token)
+void parseString(const std::string& line, std::vector<std::string>& subStrings, char token)
 {
 	size_t start = 0;
 	size_t end = 0;
@@ -38,6 +42,59 @@ void parseString(std::string& line, std::vector<std::string>& subStrings, char t
 }
 
 Table::Table(const std::string& filePath)
+{
+	std::vector<std::string> subStrings;
+	parseString(filePath, subStrings, '.');
+	if (subStrings[-1] == "json"
+	 || subStrings[-1] == "JSON")
+	{
+		initFromJson(filePath);
+	}else if (subStrings[-1] == "csv"
+	 || subStrings[-1] == "CSV")
+	{
+		initFromCSV(filePath);
+	}
+}
+
+void Table::initFromJson(const std::string& filePath)
+{
+	std::ifstream tableFile;
+	tableFile.open(filePath);
+	if (!tableFile.is_open())
+		throw std::runtime_error("Unable to read file with the table");
+
+	json data = json::parse(tableFile);
+
+	tableFile.close();
+
+	if (data.size() == 0)
+		return;
+
+	for (auto& [key, value] : data[0].items())
+	{
+		m_columnNames.push_back(key);
+	}
+
+	for (auto& item : data)
+	{
+		for (auto& [key, value] : item.items())
+		{
+			if (value.is_number_float())
+			{
+				m_floatColumns[key].push_back(value);
+			}else if (value.is_number_integer())
+			{
+				m_intColumns[key].push_back(value);
+			}else
+			{
+				m_stringColumns[key].push_back(value);
+			}
+		}
+	}
+
+}
+
+void Table::initFromCSV(const std::string& filePath)
 {
 	std::ifstream tableFile;
 	tableFile.open(filePath);
@@ -70,6 +127,8 @@ Table::Table(const std::string& filePath)
 
 	tableFile.close();
 }
+
+
 
 int Table::getNbOfSamples() const
 {

@@ -14,4 +14,6 @@ std::vector<float> computeLogReturns(const Table& t, const std::string& columnNa
 	}
 	return resualt;
 }
+
+
 }

@@ -23,6 +23,8 @@ class Table
 		const std::vector<float>& getFloatColumnValues(std::string columnName, int start = 0, int end = -1) const;
 		const std::vector<int>& getIntColumnValues(std::string columnName, int start = 0, int end = -1) const;
 	private:
+		void initFromJson(const std::string& fileName);
+		void initFromCSV(const std::string& fileName);
 		int m_nbOfSamples;
 		std::string m_filePath;
 		std::vector<std::string> m_columnNames;
