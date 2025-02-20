@@ -179,8 +179,8 @@ export class MarketTokensApiService
    * Get a specific token's trended price data (OHLCV).
    * You can provide a token unit for aggregated data or an onchainID for a specific pair.
    *
-   * @param {string} unit - Token unit (policy + hex name) (required).
-   * @param {string} onchainID - Pair onchain ID for detailed data (required).
+   * @param {string} unit - Token unit (policy + hex name) (required this one or onchainID).
+   * @param {string} onchainID - Pair onchain ID for detailed data (required this one or unit).
    * @param {string} interval - Time interval for the OHLCV data (e.g., "1d", "1h") (required).
    * @param {number} numIntervals - Number of intervals to return (required).
    * @returns {Promise<TokenOHLCV[]>} A promise that resolves to an array of OHLCV data points.
