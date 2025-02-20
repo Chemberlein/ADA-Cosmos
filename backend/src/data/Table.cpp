@@ -45,13 +45,14 @@ Table::Table(const std::string& filePath)
 {
 	std::vector<std::string> subStrings;
 	parseString(filePath, subStrings, '.');
-	if (subStrings[-1] == "json"
-	 || subStrings[-1] == "JSON")
+	if (subStrings[subStrings.size()-1] == "json"
+	 || subStrings[subStrings.size()-1] == "JSON")
 	{
 		initFromJson(filePath);
-	}else if (subStrings[-1] == "csv"
-	 || subStrings[-1] == "CSV")
+	}else if (subStrings[subStrings.size()-1] == "csv"
+	 || subStrings[subStrings.size()-1] == "CSV")
 	{
+		std::cout<<"CSV"<<std::endl;
 		initFromCSV(filePath);
 	}
 }
@@ -135,7 +136,7 @@ int Table::getNbOfSamples() const
 	return m_nbOfSamples;
 }
 
-DataType Table::getColumnDataType(std::string columnName)
+DataType Table::getColumnDataType(const std::string& columnName)
 {
 	if (m_floatColumns.contains(columnName))
 		return DataType::Float;
@@ -147,7 +148,7 @@ DataType Table::getColumnDataType(std::string columnName)
 	return DataType::Unsupported;
 }
 
-const std::vector<std::string>& Table::getStringColumnValues(std::string columnName, int start, int end) const
+const std::vector<std::string>& Table::getStringColumnValues(const std::string& columnName, int start, int end) const
 {
 	if (!m_stringColumns.contains(columnName))
 		throw std::logic_error("Column do not exist");
@@ -155,7 +156,7 @@ const std::vector<std::string>& Table::getStringColumnValues(std::string columnN
 	return m_stringColumns.at(columnName);
 }
 
-const std::vector<float>& Table::getFloatColumnValues(std::string columnName, int start, int end) const
+const std::vector<float>& Table::getFloatColumnValues(const std::string& columnName, int start, int end) const
 {
 	if (!m_floatColumns.contains(columnName))
 		throw std::logic_error("Column do not exist");
@@ -163,11 +164,19 @@ const std::vector<float>& Table::getFloatColumnValues(std::string columnName, in
 	return m_floatColumns.at(columnName);
 }
 
-const std::vector<int>& Table::getIntColumnValues(std::string columnName, int start, int end) const
+const std::vector<int>& Table::getIntColumnValues(const std::string& columnName, int start, int end) const
 {
 	if (!m_intColumns.contains(columnName))
 		throw std::logic_error("Column do not exist");
 
 	return m_intColumns.at(columnName);
+}
+const float Table::getCellFloatValue(const std::string& columnName, int row) const
+{
+	return m_floatColumns.at(columnName)[row];
+}
+const int Table::getCellIntValue(const std::string& columnName, int row) const
+{
+	return m_intColumns.at(columnName)[row];
 }
 }
