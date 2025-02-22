@@ -8,15 +8,19 @@ import React, {
   useMemo,
 } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
-import * as THREE from 'three'; // Import Three.js for custom objects
+import * as THREE from 'three';
+import {
+  CSS2DRenderer,
+  CSS2DObject,
+} from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { SunMarketData, Token } from './data/getTokensData';
 import { createPolarGrid } from './render/createPolarGrid';
 import { useBloomPass } from './render/useBloomPass';
 import { renderNodeLabel } from './render/renderNodeLabel';
 
-const MAX_NODE_SIZE = 2000;
-const orbitGap = 100; // Gap between orbit lines
-const offset = 3; // First node's multiplier
+const MAX_NODE_SIZE = 2500;
+const orbitGap = 100;
+const offset = 3;
 
 interface TokenNode {
   id: string;
@@ -54,7 +58,6 @@ interface CardanoTokensGraphClientProps {
 
 function useDimensions(ref: React.RefObject<HTMLElement>) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
   const updateDimensions = () => {
     if (ref.current) {
       setDimensions({
@@ -63,13 +66,10 @@ function useDimensions(ref: React.RefObject<HTMLElement>) {
       });
     }
   };
-
   useEffect(() => {
     if (!ref.current) return;
     updateDimensions();
-    const observer = new ResizeObserver(() => {
-      updateDimensions();
-    });
+    const observer = new ResizeObserver(() => updateDimensions());
     observer.observe(ref.current);
     window.addEventListener('resize', updateDimensions);
     return () => {
@@ -77,7 +77,6 @@ function useDimensions(ref: React.RefObject<HTMLElement>) {
       window.removeEventListener('resize', updateDimensions);
     };
   }, [ref]);
-
   return dimensions;
 }
 
@@ -89,22 +88,25 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useDimensions(containerRef);
 
-  // State for highlighting (hovered and selected)
+  // For hover/selection state
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
-  // Memoize nodes so their positions remain constant
+  // Create CSS2DRenderer instance for labels
+  const labelRenderer = useMemo(() => new CSS2DRenderer(), []);
+
+  // Memoize nodes
   const nodes: GraphNode[] = useMemo(() => {
     if (!tokens || tokens.length === 0) return [];
     const maxMcap = Math.max(...tokens.map((t) => t.mcap));
     const computedNodes: GraphNode[] = tokens.map((token, i) => {
       const orbitRadius = (offset + i) * orbitGap;
-      const angle = Math.random() * 2 * Math.PI; // Random angle computed once
+      const angle = Math.random() * 2 * Math.PI;
       const x = orbitRadius * Math.cos(angle);
       const z = orbitRadius * Math.sin(angle);
       return {
         id: token.unit,
-        name: token.ticker,
+        name: token.ticker, // token name for label
         marketCap: token.mcap,
         val: (token.mcap / maxMcap) * MAX_NODE_SIZE,
         x,
@@ -117,13 +119,12 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
         angle,
       } as TokenNode;
     });
-
     // Add sun node at the center
     if (sunMarketData) {
       computedNodes.push({
         id: 'sun',
         marketData: sunMarketData,
-        val: 20000,
+        val: 25000,
         x: 0,
         y: 0,
         z: 0,
@@ -169,15 +170,13 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
     }
   }, [tokens]);
 
-  // Set up the bloom pass using the custom hook
+  // Setup bloom pass
   useBloomPass(fgRef);
 
-  // Update hover state on pointer move
   const handleNodeHover = useCallback((node: GraphNode | null) => {
     setHoverNode(node);
   }, []);
 
-  // On click, highlight the node and animate the camera
   const handleNodeClick = useCallback((node: GraphNode) => {
     setSelectedNode(node);
     const distance = 100;
@@ -220,35 +219,47 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
           onNodeClick={handleNodeClick}
           onNodeHover={handleNodeHover}
           nodeResolution={16}
-          /*
-            Use nodeThreeObjectExtend so that the object returned by nodeThreeObject
-            is appended to the default node mesh rather than replacing it.
-          */
+          extraRenderers={[labelRenderer]}
           nodeThreeObjectExtend={true}
           nodeThreeObject={(node: GraphNode) => {
+            const group = new THREE.Group();
+            let labelObj = (node as any).__labelObj;
+            if (!labelObj) {
+              const nodeEl = document.createElement('div');
+              nodeEl.className = 'node-label';
+              nodeEl.textContent = 'name' in node ? node.name : 'ADA';
+              nodeEl.style.color = '#ffffff';
+              nodeEl.style.fontSize = '7px';
+              nodeEl.style.fontWeight = 'bold';
+              nodeEl.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'; // semitransparent background
+              nodeEl.style.borderRadius = '4px';
+              nodeEl.style.padding = '2px 2px';
+              labelObj = new CSS2DObject(nodeEl);
+              (node as any).__labelObj = labelObj;
+            }
+            group.add(labelObj);
+
             if (node === hoverNode || node === selectedNode) {
               const ringColor = node === hoverNode ? 'red' : 'orange';
-              // Use cube root scaling to approximate the rendered node sphere radius.
               const nodeRadius = Math.cbrt(node.val);
-              // Set the inner radius to be exactly x6 larger than the node's radius.
               const innerRadius = nodeRadius * 6;
-              // Use a fixed ring thickness (in world units). Adjust this constant as needed.
               const ringThickness = 5;
               const outerRadius = innerRadius + ringThickness;
-              
-              const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 32);
+              const ringGeometry = new THREE.RingGeometry(
+                innerRadius,
+                outerRadius,
+                32
+              );
               const ringMaterial = new THREE.MeshBasicMaterial({
                 color: ringColor,
                 side: THREE.DoubleSide,
               });
               const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-              // Rotate so the ring is flat (facing the camera).
               ring.rotation.x = Math.PI / 2;
-              return ring;
+              group.add(ring);
             }
-            return new THREE.Group();
+            return group;
           }}
-          
         />
       )}
     </div>
