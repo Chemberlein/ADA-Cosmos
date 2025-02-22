@@ -1,33 +1,39 @@
 export abstract class BaseApiService {
 	protected baseUrl: string;
 	protected apiKey?: string;
+	protected origin: string;
 
 	constructor(
 		baseUrl: string = process.env.NEXT_PUBLIC_TAPTOOLS_PROXY_URL!,
-		apiKey: string = process.env.TAPTOOLS_API_KEY!
+		apiKey: string = process.env.TAPTOOLS_API_KEY!,
+		origin?: string
 	) {
 		this.baseUrl = baseUrl;
 		this.apiKey = apiKey;
+		// If an origin is provided, use it; otherwise, determine based on environment.
+		this.origin =
+			origin ||
+			(typeof window !== "undefined"
+				? window.location.origin
+				: process.env.NEXT_PUBLIC_HOST || "http://localhost:3000");
 	}
 
 	/**
 	 * Builds the full URL using the proxy.
-	 * All endpoints will be sent through the proxy.
+	 * This works in both client and server environments.
 	 */
 	protected buildUrl(
 		endpoint: string,
 		queryParams?: Record<string, any>
 	): string {
-		// Construct the proxy URL using the provided base URL
-		const url = new URL(this.baseUrl, window.location.origin);
+		const url = new URL(this.baseUrl, this.origin);
 
-		// Append the actual API endpoint as a query parameter named "endpoint"
+		// Append the API endpoint as a query parameter
 		url.searchParams.append(
 			"endpoint",
 			endpoint.startsWith("/") ? endpoint.substring(1) : endpoint
 		);
 
-		// Append any additional query parameters
 		if (queryParams) {
 			Object.keys(queryParams).forEach((key) => {
 				const value = queryParams[key];
@@ -36,6 +42,9 @@ export abstract class BaseApiService {
 				}
 			});
 		}
+
+		// Debug: log the constructed URL
+		console.log(`Constructed URL: ${url.toString()}`);
 		return url.toString();
 	}
 
