@@ -1,7 +1,12 @@
 #include "Computations.hpp"
+#include "requests/TopLiquidityTokens.hpp"
+#include "requests/TokenPriceOHLCV.hpp"
 
 #include <cmath>
+#include <iostream>
+
 using namespace table;
+using namespace requests;
 namespace computations
 {
 std::vector<float> computeLogReturns(const Table& t, const std::string& columnName)
@@ -15,5 +20,14 @@ std::vector<float> computeLogReturns(const Table& t, const std::string& columnNa
 	return resualt;
 }
 
+void generateLogReturnsGraph(){
+	TopLiquidityTokens tokens(100);
+	std::vector<std::string> tokensUnits = tokens.getVectorOfUnits();
+	for (auto unit : tokensUnits){
+		std::cout<<tokens.getTicker(unit)<<std::endl;
+		TokenOHLC ohlc{unit};
+		ohlc.printInCSVFormat();
+	}
+}
 
 }

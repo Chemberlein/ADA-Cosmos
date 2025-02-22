@@ -1,5 +1,7 @@
 #include "Table.hpp"
 
+#include "tools/Tools.hpp"
+
 #include <nlohmann/json.hpp>
 
 #include <iostream>
@@ -25,26 +27,10 @@ bool isInt(const std::string& segment) {
 	return iss.eof() && !iss.fail();
 }
 
-void parseString(const std::string& line, std::vector<std::string>& subStrings, char token)
-{
-	size_t start = 0;
-	size_t end = 0;
-
-	while (end != std::string::npos)
-	{
-		end = line.find(token, start);
-		if ((end - start) > 0)
-		{
-			subStrings.push_back(line.substr(start, end - start));
-		}
-		start = end + 1;
-	}
-}
-
 Table::Table(const std::string& filePath)
 {
 	std::vector<std::string> subStrings;
-	parseString(filePath, subStrings, '.');
+	tools:tools::parseString(filePath, subStrings, '.');
 	if (subStrings[subStrings.size()-1] == "json"
 	 || subStrings[subStrings.size()-1] == "JSON")
 	{
@@ -105,12 +91,12 @@ void Table::initFromCSV(const std::string& filePath)
 	std::string line;
 	getline(tableFile, line);
 	// We need to read column names
-	parseString(line, m_columnNames, ',');
+	tools::parseString(line, m_columnNames, ',');
 
 	while (getline(tableFile, line))
 	{
 		std::vector<std::string> parsedLine;
-		parseString(line, parsedLine, ',');
+		tools::parseString(line, parsedLine, ',');
 		for (auto i = 0; i<parsedLine.size(); i++)
 		{
 			if (isFloat(parsedLine[i]))
