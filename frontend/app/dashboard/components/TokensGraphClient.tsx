@@ -228,32 +228,27 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
           nodeThreeObject={(node: GraphNode) => {
             if (node === hoverNode || node === selectedNode) {
               const ringColor = node === hoverNode ? 'red' : 'orange';
-              // Calculate a base radius from node.val
-              const baseRadius = node.val / 15;
-              // Clamp the effective radius to a reasonable range.
-              // Adjust these numbers as needed for your visual design.
-              const clampedRadius = Math.max(Math.min(baseRadius, 50), 10);
-
-              // Make the ring’s inner edge exactly 30% larger than the clamped node radius.
-              const innerRadius = clampedRadius * 2.2;
-              // Then use a fixed additional thickness (here, 10% of the clamped radius)
-              const outerRadius = innerRadius + clampedRadius * 0.1;
-
-              const ringGeometry = new THREE.RingGeometry(
-                innerRadius,
-                outerRadius,
-                32
-              );
+              // Use cube root scaling to approximate the rendered node sphere radius.
+              const nodeRadius = Math.cbrt(node.val);
+              // Set the inner radius to be exactly x6 larger than the node's radius.
+              const innerRadius = nodeRadius * 6;
+              // Use a fixed ring thickness (in world units). Adjust this constant as needed.
+              const ringThickness = 5;
+              const outerRadius = innerRadius + ringThickness;
+              
+              const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 32);
               const ringMaterial = new THREE.MeshBasicMaterial({
                 color: ringColor,
                 side: THREE.DoubleSide,
               });
               const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+              // Rotate so the ring is flat (facing the camera).
               ring.rotation.x = Math.PI / 2;
               return ring;
             }
             return new THREE.Group();
           }}
+          
         />
       )}
     </div>
