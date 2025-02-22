@@ -23,7 +23,9 @@ export default function LandingPage() {
 							width={50}
 							height={50}
 						/>
-						<span className="text-3xl font-bold pl-3">ADA Kosmos</span>
+						<span className="text-3xl font-bold pl-3">
+							ADA Kosmos
+						</span>
 					</div>
 					<ul className="flex space-x-6 text-2xl">
 						<li>
@@ -62,7 +64,8 @@ export default function LandingPage() {
 			<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
 				<div>
 					<h1 className="text-5xl font-bold mb-8 max-w-4xl mx-auto inset-shadow-lg">
-						Uncover <span className="text-[#0033AD] text-6xl">Hidden</span>{" "}
+						Uncover{" "}
+						<span className="text-[#0033AD] text-6xl">Hidden</span>{" "}
 						Structures inside Cardano Ecosystem
 					</h1>
 					<ClerkLoading>
@@ -70,9 +73,11 @@ export default function LandingPage() {
 					</ClerkLoading>
 					<ClerkLoaded>
 						<SignedIn>
-							<button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300">
-								<Link href="/dashboard">Dashboard</Link>
-							</button>
+							<Link href="/dashboard">
+								<button className="bg-white text-black font-bold py-3 px-6 rounded-md hover:bg-gray-200 transition duration-300">
+									Dashboard
+								</button>
+							</Link>
 						</SignedIn>
 						<SignedOut>
 							<SignInButton mode="modal">
