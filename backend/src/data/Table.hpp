@@ -18,10 +18,12 @@ class Table
 	public:
 		Table(const std::string& filePath);
 		int getNbOfSamples() const;
-		DataType getColumnDataType(std::string columnName);
-		const std::vector<std::string>& getStringColumnValues(std::string columnName, int start = 0, int end = -1) const;
-		const std::vector<float>& getFloatColumnValues(std::string columnName, int start = 0, int end = -1) const;
-		const std::vector<int>& getIntColumnValues(std::string columnName, int start = 0, int end = -1) const;
+		DataType getColumnDataType(const std::string& columnName);
+		const std::vector<std::string>& getStringColumnValues(const std::string& columnName, int start = 0, int end = -1) const;
+		const std::vector<float>& getFloatColumnValues(const std::string& columnName, int start = 0, int end = -1) const;
+		const std::vector<int>& getIntColumnValues(const std::string& columnName, int start = 0, int end = -1) const;
+		const float getCellFloatValue(const std::string& columnName, int row) const;
+		const int getCellIntValue(const std::string& columnName, int row) const;
 	private:
 		void initFromJson(const std::string& fileName);
 		void initFromCSV(const std::string& fileName);

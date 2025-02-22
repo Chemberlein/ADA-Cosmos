@@ -1,12 +1,13 @@
 'use client';
 
 import { Token } from "@clerk/nextjs/server";
-import TopTokenHolders from "./tokens";
+import OHLCTable from "./tokens";
+import TopLiquidityTokens from "./tokensLiquidity";
 
 export default function Dashboard() {
   return (
     <main className="overflow-hidden">
-      <TopTokenHolders />
+      <TopLiquidityTokens />
     </main>
   );
 }

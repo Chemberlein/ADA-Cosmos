@@ -1,5 +1,7 @@
 #include "Table.hpp"
 
+#include "tools/Tools.hpp"
+
 #include <nlohmann/json.hpp>
 
 #include <iostream>
@@ -25,33 +27,18 @@ bool isInt(const std::string& segment) {
 	return iss.eof() && !iss.fail();
 }
 
-void parseString(const std::string& line, std::vector<std::string>& subStrings, char token)
-{
-	size_t start = 0;
-	size_t end = 0;
-
-	while (end != std::string::npos)
-	{
-		end = line.find(token, start);
-		if ((end - start) > 0)
-		{
-			subStrings.push_back(line.substr(start, end - start));
-		}
-		start = end + 1;
-	}
-}
-
 Table::Table(const std::string& filePath)
 {
 	std::vector<std::string> subStrings;
-	parseString(filePath, subStrings, '.');
-	if (subStrings[-1] == "json"
-	 || subStrings[-1] == "JSON")
+	tools:tools::parseString(filePath, subStrings, '.');
+	if (subStrings[subStrings.size()-1] == "json"
+	 || subStrings[subStrings.size()-1] == "JSON")
 	{
 		initFromJson(filePath);
-	}else if (subStrings[-1] == "csv"
-	 || subStrings[-1] == "CSV")
+	}else if (subStrings[subStrings.size()-1] == "csv"
+	 || subStrings[subStrings.size()-1] == "CSV")
 	{
+		std::cout<<"CSV"<<std::endl;
 		initFromCSV(filePath);
 	}
 }
@@ -104,12 +91,12 @@ void Table::initFromCSV(const std::string& filePath)
 	std::string line;
 	getline(tableFile, line);
 	// We need to read column names
-	parseString(line, m_columnNames, ',');
+	tools::parseString(line, m_columnNames, ',');
 
 	while (getline(tableFile, line))
 	{
 		std::vector<std::string> parsedLine;
-		parseString(line, parsedLine, ',');
+		tools::parseString(line, parsedLine, ',');
 		for (auto i = 0; i<parsedLine.size(); i++)
 		{
 			if (isFloat(parsedLine[i]))
@@ -135,7 +122,7 @@ int Table::getNbOfSamples() const
 	return m_nbOfSamples;
 }
 
-DataType Table::getColumnDataType(std::string columnName)
+DataType Table::getColumnDataType(const std::string& columnName)
 {
 	if (m_floatColumns.contains(columnName))
 		return DataType::Float;
@@ -147,7 +134,7 @@ DataType Table::getColumnDataType(std::string columnName)
 	return DataType::Unsupported;
 }
 
-const std::vector<std::string>& Table::getStringColumnValues(std::string columnName, int start, int end) const
+const std::vector<std::string>& Table::getStringColumnValues(const std::string& columnName, int start, int end) const
 {
 	if (!m_stringColumns.contains(columnName))
 		throw std::logic_error("Column do not exist");
@@ -155,7 +142,7 @@ const std::vector<std::string>& Table::getStringColumnValues(std::string columnN
 	return m_stringColumns.at(columnName);
 }
 
-const std::vector<float>& Table::getFloatColumnValues(std::string columnName, int start, int end) const
+const std::vector<float>& Table::getFloatColumnValues(const std::string& columnName, int start, int end) const
 {
 	if (!m_floatColumns.contains(columnName))
 		throw std::logic_error("Column do not exist");
@@ -163,11 +150,19 @@ const std::vector<float>& Table::getFloatColumnValues(std::string columnName, in
 	return m_floatColumns.at(columnName);
 }
 
-const std::vector<int>& Table::getIntColumnValues(std::string columnName, int start, int end) const
+const std::vector<int>& Table::getIntColumnValues(const std::string& columnName, int start, int end) const
 {
 	if (!m_intColumns.contains(columnName))
 		throw std::logic_error("Column do not exist");
 
 	return m_intColumns.at(columnName);
+}
+const float Table::getCellFloatValue(const std::string& columnName, int row) const
+{
+	return m_floatColumns.at(columnName)[row];
+}
+const int Table::getCellIntValue(const std::string& columnName, int row) const
+{
+	return m_intColumns.at(columnName)[row];
 }
 }

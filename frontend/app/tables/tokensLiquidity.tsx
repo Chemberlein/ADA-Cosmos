@@ -3,17 +3,15 @@
 import React from "react";
 import { MarketTokensApiService } from "@/services/MarketTokensApiService";
 import { useApi } from "@/hooks/useApi";
-import { TokenOHLCV, TopTokenHolder } from "@/interfaces/tokens";
+import { TokenOHLCV, TopLiquidityToken, TopTokenHolder } from "@/interfaces/tokens";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const OHLCTable = () => {
+const TopLiquidityTokens = () => {
 	const apiService = new MarketTokensApiService();
-	const { data, loading, error } = useApi<TokenOHLCV[]>(() =>
-		apiService.getTokenPriceOHLCV(
-			"5d16cc1a177b5d9ba9cfa9793b07e60f1fb70fea1f8aef064415d114494147",
-			"",
-			"1d",
-			365
+	const { data, loading, error } = useApi<TopLiquidityToken[]>(() =>
+		apiService.getTopLiquidityTokens(
+			1,
+			200
 		)
 	);
 
@@ -28,20 +26,17 @@ const OHLCTable = () => {
 					<TableHeader>
 						<TableRow>	
 							<TableHead> 
-							Time 
+							Liquidity
 							</TableHead>
 							<TableHead> 
-							Open
+							Price
 							</TableHead>
 							<TableHead> 
-							High 
+							Ticker 
 							</TableHead>
 							<TableHead> 
-							Low
+							Unit
 							</TableHead>
-							<TableHead> 
-							Close
-							</TableHead>	
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -49,19 +44,16 @@ const OHLCTable = () => {
 						data.map((instance) => (
 						<TableRow>
 							<TableCell>	
-								{instance.time}
+								{instance.liquidity}
 							</TableCell>
 							<TableCell>	
-								{instance.open}
+								{instance.price}
 							</TableCell>
 							<TableCell>	
-								{instance.high}
+								{instance.ticker}
 							</TableCell>
 							<TableCell>	
-								{instance.low}
-							</TableCell>
-							<TableCell>	
-								{instance.open}
+								{instance.unit}
 							</TableCell>
 						</TableRow>
 						))
@@ -73,4 +65,4 @@ const OHLCTable = () => {
 	);
 };
 
-export default OHLCTable;
+export default TopLiquidityTokens;

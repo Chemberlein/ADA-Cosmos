@@ -9,4 +9,5 @@ namespace computations
 std::vector<float> computeLogReturns(
 		const table::Table& t,
 		const std::string& columnName);
+void generateLogReturnsGraph();
 }
