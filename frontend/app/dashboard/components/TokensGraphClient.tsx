@@ -18,8 +18,8 @@ import { createPolarGrid } from './render/createPolarGrid';
 import { useBloomPass } from './render/useBloomPass';
 import { renderNodeLabel } from './render/renderNodeLabel';
 
-const MAX_NODE_SIZE = 2500;
-const orbitGap = 100;
+const MAX_NODE_SIZE = 20;
+const orbitGap = 30;
 const offset = 3;
 
 interface TokenNode {
@@ -124,7 +124,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
       computedNodes.push({
         id: 'sun',
         marketData: sunMarketData,
-        val: 25000,
+        val: 500,
         x: 0,
         y: 0,
         z: 0,
@@ -179,17 +179,17 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
 
   const handleNodeClick = useCallback((node: GraphNode) => {
     setSelectedNode(node);
-    const distance = 100;
+    const distance = 200;
     let targetX, targetY, targetZ;
     if (Math.hypot(node.x, node.y, node.z) === 0) {
       targetX = 200;
-      targetY = 200;
-      targetZ = -700;
+      targetY = 400;
+      targetZ = 0;
     } else {
       const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
-      targetX = node.x * distRatio + 200;
-      targetY = node.y * distRatio + 200;
-      targetZ = node.z * distRatio - 700;
+      targetX = node.x * distRatio;
+      targetY = node.y * distRatio + 100;
+      targetZ = node.z * distRatio;
     }
     fgRef.current.cameraPosition(
       { x: targetX, y: targetY, z: targetZ },
@@ -243,7 +243,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
               const ringColor = node === hoverNode ? 'red' : 'orange';
               const nodeRadius = Math.cbrt(node.val);
               const innerRadius = nodeRadius * 6;
-              const ringThickness = 5;
+              const ringThickness = 2;
               const outerRadius = innerRadius + ringThickness;
               const ringGeometry = new THREE.RingGeometry(
                 innerRadius,
