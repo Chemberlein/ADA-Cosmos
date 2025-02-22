@@ -15,10 +15,12 @@ const FocusGraph: React.FC<FocusGraphProps> = ({ data }) => {
   if (!data) return <div>Error: No data available</div>;
 
   return (
-    <TokensGraphClient
-      tokens={data.tokens}
-      sunMarketData={data.sunMarketData}
-    />
+    <div className="h-[100vh] w-full">
+      <TokensGraphClient
+        tokens={data.tokens}
+        sunMarketData={data.sunMarketData}
+      />
+    </div>
   );
 };
 

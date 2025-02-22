@@ -6,7 +6,7 @@ export default async function Dashboard() {
   const data = await FetchTokensData();
 
   return (
-    <main className="overflow-hidden">
+    <main className="min-h-screen w-full">
       <FocusGraphWrapper data={data} />
     </main>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import { SunMarketData, Token } from './data/getTokensData';
 import { createPolarGrid } from './render/createPolarGrid';
@@ -16,11 +16,43 @@ interface CardanoTokensGraphClientProps {
   sunMarketData: SunMarketData;
 }
 
+// Enhanced custom hook: listens both to ResizeObserver and window resize events
+function useDimensions(ref: React.RefObject<HTMLElement>) {
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  const updateDimensions = () => {
+    if (ref.current) {
+      setDimensions({
+        width: ref.current.offsetWidth,
+        height: ref.current.offsetHeight,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!ref.current) return;
+    updateDimensions();
+    const observer = new ResizeObserver(() => {
+      updateDimensions();
+    });
+    observer.observe(ref.current);
+    window.addEventListener('resize', updateDimensions);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, [ref]);
+
+  return dimensions;
+}
+
 const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   tokens,
   sunMarketData,
 }) => {
   const fgRef = useRef<any>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useDimensions(containerRef);
 
   // Build nodes and links
   let nodes: any[] = [];
@@ -123,19 +155,25 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   const graphData = { nodes, links };
 
   return (
-    <div className="overflow-hidden">
-      <ForceGraph3D
-        ref={fgRef}
-        width={1300}
-        height={950}
-        backgroundColor="#000000"
-        graphData={graphData}
-        nodeLabel={renderNodeLabel}
-        nodeAutoColorBy="name"
-        enableNodeDrag={false}
-        onNodeClick={handleNodeClick}
-        nodeResolution={16}
-      />
+    <div
+      ref={containerRef}
+      className="overflow-hidden"
+      style={{ width: '100%', height: '100%', position: 'relative' }}
+    >
+      {width > 0 && height > 0 && (
+        <ForceGraph3D
+          ref={fgRef}
+          width={width}
+          height={height}
+          backgroundColor="#000000"
+          graphData={graphData}
+          nodeLabel={renderNodeLabel}
+          nodeAutoColorBy="name"
+          enableNodeDrag={false}
+          onNodeClick={handleNodeClick}
+          nodeResolution={16}
+        />
+      )}
     </div>
   );
 };

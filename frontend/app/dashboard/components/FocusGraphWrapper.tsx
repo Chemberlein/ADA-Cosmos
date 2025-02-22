@@ -5,5 +5,9 @@ const FocusGraph = dynamic(() => import("./FocusGraph"), {
 });
 
 export default function FocusGraphWrapper(props: { data: any }) {
-	return <FocusGraph {...props} />;
+	return(
+		<div className="h-[100vh] w-full">
+			<FocusGraph {...props} />
+		</div>
+	);
 }
