@@ -1,15 +1,50 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import { SunMarketData, Token } from './data/getTokensData';
 import { createPolarGrid } from './render/createPolarGrid';
 import { useBloomPass } from './render/useBloomPass';
 import { renderNodeLabel } from './render/renderNodeLabel';
 
-const MAX_NODE_SIZE = 1000;
+const MAX_NODE_SIZE = 2000;
 const orbitGap = 100; // Gap between orbit lines
 const offset = 3; // First node's multiplier
+
+interface TokenNode {
+  id: string;
+  name: string;
+  marketCap: number;
+  val: number;
+  x: number;
+  y: number;
+  z: number;
+  fx: number;
+  fy: number;
+  fz: number;
+  orbitRadius: number;
+  angle: number;
+}
+
+interface SunNode {
+  id: 'sun';
+  marketData: SunMarketData;
+  val: number;
+  x: number;
+  y: number;
+  z: number;
+  fx: number;
+  fy: number;
+  fz: number;
+}
+
+type GraphNode = TokenNode | SunNode;
 
 interface CardanoTokensGraphClientProps {
   tokens: Token[];
@@ -54,14 +89,13 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useDimensions(containerRef);
 
-  // Build nodes and links
-  let nodes: any[] = [];
-  let links: any[] = [];
-  if (tokens && tokens.length > 0) {
+  // Memoize node calculations so that positions remain the same across renders
+  const nodes: GraphNode[] = useMemo(() => {
+    if (!tokens || tokens.length === 0) return [];
     const maxMcap = Math.max(...tokens.map((t) => t.mcap));
-    nodes = tokens.map((token, i) => {
+    const computedNodes: GraphNode[] = tokens.map((token, i) => {
       const orbitRadius = (offset + i) * orbitGap;
-      const angle = Math.random() * 2 * Math.PI;
+      const angle = Math.random() * 2 * Math.PI; // Random angle computed only once
       const x = orbitRadius * Math.cos(angle);
       const z = orbitRadius * Math.sin(angle);
       return {
@@ -77,24 +111,27 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
         fz: z,
         orbitRadius,
         angle,
-      };
+      } as TokenNode;
     });
 
     // Add sun node at the center
     if (sunMarketData) {
-      nodes.push({
+      computedNodes.push({
         id: 'sun',
         marketData: sunMarketData,
-        val: 15000,
+        val: 20000,
         x: 0,
         y: 0,
         z: 0,
         fx: 0,
         fy: 0,
         fz: 0,
-      });
+      } as SunNode);
     }
-  }
+    return computedNodes;
+  }, [tokens, sunMarketData]);
+
+  const links = useMemo(() => [], []);
 
   useEffect(() => {
     if (fgRef.current && tokens && tokens.length > 0) {
@@ -132,7 +169,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   useBloomPass(fgRef);
 
   // Click-to-focus: animate camera to the clicked node
-  const handleNodeClick = useCallback((node: any) => {
+  const handleNodeClick = useCallback((node: GraphNode) => {
     const distance = 100;
     let targetX, targetY, targetZ;
     if (Math.hypot(node.x, node.y, node.z) === 0) {
