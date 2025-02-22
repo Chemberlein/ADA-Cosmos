@@ -18,7 +18,7 @@ import { createPolarGrid } from './render/createPolarGrid';
 import { useBloomPass } from './render/useBloomPass';
 import { renderNodeLabel } from './render/renderNodeLabel';
 
-const MAX_NODE_SIZE = 20;
+const MAX_NODE_SIZE = 30;
 const orbitGap = 30;
 const offset = 3;
 
