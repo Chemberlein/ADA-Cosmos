@@ -26,5 +26,5 @@ include(FetchContent)
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
-
-target_link_libraries(HUTA PRIVATE nlohmann_json::nlohmann_json)
+find_package( CURL REQUIRED )
+target_link_libraries(HUTA PRIVATE nlohmann_json::nlohmann_json CURL::libcurl )
