@@ -1,13 +1,13 @@
-"use client";
+import { FetchTokensData } from "./components/fetchTokensData";
+import FocusGraphWrapper from "./components/FocusGraphWrapper";
 
-import FocusGraph from "./components/FocusGraphWrapper";
-import TokenById from "./components/tokenInfo";
-import TopTokenHolders from "./components/tokens";
+export default async function Dashboard() {
+	// This fetch will run on the server and trigger your cacheCall logs.
+	const data = await FetchTokensData();
 
-export default function Dashboard() {
 	return (
 		<main className="overflow-hidden">
-			<FocusGraph />
+			<FocusGraphWrapper data={data} />
 		</main>
 	);
 }
