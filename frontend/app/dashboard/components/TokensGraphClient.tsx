@@ -91,6 +91,14 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   // For hover/selection state
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  // Flag to trigger orbiting after camera transition
+  const [shouldOrbit, setShouldOrbit] = useState(false);
+
+  // Refs to manage orbiting animation and delay timeout
+  const orbitAnimationRef = useRef<number | null>(null);
+  const orbitTimeoutRef = useRef<number | null>(null);
+  const orbitAngleRef = useRef(0);
+  const orbitRadiusRef = useRef(0);
 
   // Create CSS2DRenderer instance for labels
   const labelRenderer = useMemo(() => new CSS2DRenderer(), []);
@@ -106,7 +114,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
       const z = orbitRadius * Math.sin(angle);
       return {
         id: token.unit,
-        name: token.ticker, // token name for label
+        name: token.ticker,
         marketCap: token.mcap,
         val: (token.mcap / maxMcap) * MAX_NODE_SIZE,
         x,
@@ -138,6 +146,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
 
   const links = useMemo(() => [], []);
 
+  // Set initial camera position on mount
   useEffect(() => {
     if (fgRef.current && tokens && tokens.length > 0) {
       fgRef.current.cameraPosition(
@@ -148,6 +157,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
     }
   }, [tokens]);
 
+  // Add polar grid to the scene
   useEffect(() => {
     if (tokens && tokens.length > 0) {
       const interval = setInterval(() => {
@@ -178,8 +188,20 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   }, []);
 
   const handleNodeClick = useCallback((node: GraphNode) => {
+    // When a node is clicked, cancel any pending orbit actions.
+    setShouldOrbit(false);
+    if (orbitTimeoutRef.current) {
+      clearTimeout(orbitTimeoutRef.current);
+      orbitTimeoutRef.current = null;
+    }
+    if (orbitAnimationRef.current) {
+      cancelAnimationFrame(orbitAnimationRef.current);
+      orbitAnimationRef.current = null;
+    }
     setSelectedNode(node);
-    const distance = 200;
+
+    // Initial camera transition to the node.
+    const distance = 150;
     let targetX, targetY, targetZ;
     if (Math.hypot(node.x, node.y, node.z) === 0) {
       targetX = 200;
@@ -196,7 +218,87 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
       node,
       3000
     );
+    // After the camera transition, start orbiting.
+    orbitTimeoutRef.current = window.setTimeout(() => {
+      setShouldOrbit(true);
+    }, 3000);
   }, []);
+
+  // Stop orbiting if the user interacts with the graph.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleUserInput = () => {
+      setShouldOrbit(false);
+      if (orbitTimeoutRef.current) {
+        clearTimeout(orbitTimeoutRef.current);
+        orbitTimeoutRef.current = null;
+      }
+      if (orbitAnimationRef.current) {
+        cancelAnimationFrame(orbitAnimationRef.current);
+        orbitAnimationRef.current = null;
+      }
+    };
+    container.addEventListener('mousedown', handleUserInput);
+    container.addEventListener('touchstart', handleUserInput);
+    container.addEventListener('wheel', handleUserInput);
+    return () => {
+      container.removeEventListener('mousedown', handleUserInput);
+      container.removeEventListener('touchstart', handleUserInput);
+      container.removeEventListener('wheel', handleUserInput);
+    };
+  }, []);
+
+  // Orbit animation effect: smoothly orbit the camera around the selected node.
+  useEffect(() => {
+    // Only start orbiting if a node is selected and the flag is set.
+    if (!selectedNode || !shouldOrbit) {
+      if (orbitAnimationRef.current) {
+        cancelAnimationFrame(orbitAnimationRef.current);
+        orbitAnimationRef.current = null;
+      }
+      return;
+    }
+
+    // Compute the orbit radius and initial angle based on the current camera position.
+    const currentCamPos = fgRef.current.camera().position;
+    const dx = currentCamPos.x - selectedNode.x;
+    const dz = currentCamPos.z - selectedNode.z;
+    orbitRadiusRef.current = Math.sqrt(dx * dx + dz * dz);
+    orbitAngleRef.current = Math.atan2(dz, dx);
+
+    // Set a small nonzero duration (in ms) to smooth out camera transitions.
+    const transitionDuration = 50;
+    // Adjust orbitSpeed to control the orbiting pace.
+    const orbitSpeed = 0.00015;
+
+    const animateOrbit = () => {
+      orbitAngleRef.current += orbitSpeed;
+      const newX =
+        selectedNode.x +
+        orbitRadiusRef.current * Math.cos(orbitAngleRef.current);
+      const newZ =
+        selectedNode.z +
+        orbitRadiusRef.current * Math.sin(orbitAngleRef.current);
+      // Maintain current Y level (you can adjust this if a tilt is desired)
+      const newY = currentCamPos.y;
+      fgRef.current.cameraPosition(
+        { x: newX, y: newY, z: newZ },
+        selectedNode,
+        transitionDuration
+      );
+      orbitAnimationRef.current = requestAnimationFrame(animateOrbit);
+    };
+
+    animateOrbit();
+
+    return () => {
+      if (orbitAnimationRef.current) {
+        cancelAnimationFrame(orbitAnimationRef.current);
+        orbitAnimationRef.current = null;
+      }
+    };
+  }, [selectedNode, shouldOrbit]);
 
   const graphData = { nodes, links };
 
@@ -231,7 +333,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
               nodeEl.style.color = '#ffffff';
               nodeEl.style.fontSize = '7px';
               nodeEl.style.fontWeight = 'bold';
-              nodeEl.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'; // semitransparent background
+              nodeEl.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
               nodeEl.style.borderRadius = '4px';
               nodeEl.style.padding = '2px 2px';
               labelObj = new CSS2DObject(nodeEl);
@@ -243,7 +345,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
               const ringColor = node === hoverNode ? 'red' : 'orange';
               const nodeRadius = Math.cbrt(node.val);
               const innerRadius = nodeRadius * 6;
-              const ringThickness = 2;
+              const ringThickness = 1;
               const outerRadius = innerRadius + ringThickness;
               const ringGeometry = new THREE.RingGeometry(
                 innerRadius,
