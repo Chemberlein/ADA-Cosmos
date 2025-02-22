@@ -8,6 +8,7 @@ import React, {
   useMemo,
 } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
+import * as THREE from 'three'; // Import Three.js for custom objects
 import { SunMarketData, Token } from './data/getTokensData';
 import { createPolarGrid } from './render/createPolarGrid';
 import { useBloomPass } from './render/useBloomPass';
@@ -51,7 +52,6 @@ interface CardanoTokensGraphClientProps {
   sunMarketData: SunMarketData;
 }
 
-// Enhanced custom hook: listens both to ResizeObserver and window resize events
 function useDimensions(ref: React.RefObject<HTMLElement>) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -89,13 +89,17 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useDimensions(containerRef);
 
-  // Memoize node calculations so that positions remain the same across renders
+  // State for highlighting (hovered and selected)
+  const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+
+  // Memoize nodes so their positions remain constant
   const nodes: GraphNode[] = useMemo(() => {
     if (!tokens || tokens.length === 0) return [];
     const maxMcap = Math.max(...tokens.map((t) => t.mcap));
     const computedNodes: GraphNode[] = tokens.map((token, i) => {
       const orbitRadius = (offset + i) * orbitGap;
-      const angle = Math.random() * 2 * Math.PI; // Random angle computed only once
+      const angle = Math.random() * 2 * Math.PI; // Random angle computed once
       const x = orbitRadius * Math.cos(angle);
       const z = orbitRadius * Math.sin(angle);
       return {
@@ -168,8 +172,14 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   // Set up the bloom pass using the custom hook
   useBloomPass(fgRef);
 
-  // Click-to-focus: animate camera to the clicked node
+  // Update hover state on pointer move
+  const handleNodeHover = useCallback((node: GraphNode | null) => {
+    setHoverNode(node);
+  }, []);
+
+  // On click, highlight the node and animate the camera
   const handleNodeClick = useCallback((node: GraphNode) => {
+    setSelectedNode(node);
     const distance = 100;
     let targetX, targetY, targetZ;
     if (Math.hypot(node.x, node.y, node.z) === 0) {
@@ -208,7 +218,42 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
           nodeAutoColorBy="name"
           enableNodeDrag={false}
           onNodeClick={handleNodeClick}
+          onNodeHover={handleNodeHover}
           nodeResolution={16}
+          /*
+            Use nodeThreeObjectExtend so that the object returned by nodeThreeObject
+            is appended to the default node mesh rather than replacing it.
+          */
+          nodeThreeObjectExtend={true}
+          nodeThreeObject={(node: GraphNode) => {
+            if (node === hoverNode || node === selectedNode) {
+              const ringColor = node === hoverNode ? 'red' : 'orange';
+              // Calculate a base radius from node.val
+              const baseRadius = node.val / 15;
+              // Clamp the effective radius to a reasonable range.
+              // Adjust these numbers as needed for your visual design.
+              const clampedRadius = Math.max(Math.min(baseRadius, 50), 10);
+
+              // Make the ring’s inner edge exactly 30% larger than the clamped node radius.
+              const innerRadius = clampedRadius * 2.2;
+              // Then use a fixed additional thickness (here, 10% of the clamped radius)
+              const outerRadius = innerRadius + clampedRadius * 0.1;
+
+              const ringGeometry = new THREE.RingGeometry(
+                innerRadius,
+                outerRadius,
+                32
+              );
+              const ringMaterial = new THREE.MeshBasicMaterial({
+                color: ringColor,
+                side: THREE.DoubleSide,
+              });
+              const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+              ring.rotation.x = Math.PI / 2;
+              return ring;
+            }
+            return new THREE.Group();
+          }}
         />
       )}
     </div>
