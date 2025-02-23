@@ -13,19 +13,20 @@ import {
   CSS2DRenderer,
   CSS2DObject,
 } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { SunMarketData, Token } from './data/getTokensData';
+import { SunMarketData, Token, TokenWithSocials } from './data/getTokensData';
 import { createPolarGrid } from './render/createPolarGrid';
 import { useBloomPass } from './render/useBloomPass';
 import { renderNodeLabel } from './render/renderNodeLabel';
+import { useSelectedToken } from '@/contexts/SelectedTokenContext';
 
 const MAX_NODE_SIZE = 30;
 const orbitGap = 30;
 const offset = 3;
 
-interface TokenNode {
+interface TokenGraphNode extends TokenWithSocials {
   id: string;
-  name: string;
-  marketCap: number;
+  ticker: string;
+  mcap: number;
   val: number;
   x: number;
   y: number;
@@ -49,10 +50,10 @@ interface SunNode {
   fz: number;
 }
 
-type GraphNode = TokenNode | SunNode;
+type GraphNode = TokenGraphNode | SunNode;
 
 interface CardanoTokensGraphClientProps {
-  tokens: Token[];
+  tokens: TokenWithSocials[];
   sunMarketData: SunMarketData;
 }
 
@@ -88,6 +89,9 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useDimensions(containerRef);
 
+  // selected token context for our sidebar
+  const { setSelectedToken } = useSelectedToken();
+
   // For hover/selection state
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -114,8 +118,8 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
       const z = orbitRadius * Math.sin(angle);
       return {
         id: token.unit,
-        name: token.ticker,
-        marketCap: token.mcap,
+        ticker: token.ticker,
+        mcap: token.mcap,
         val: (token.mcap / maxMcap) * MAX_NODE_SIZE,
         x,
         y: 0,
@@ -125,7 +129,8 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
         fz: z,
         orbitRadius,
         angle,
-      } as TokenNode;
+        socials: token.socials, // include socials here
+      } as TokenGraphNode;
     });
     // Add sun node at the center
     if (sunMarketData) {
@@ -187,42 +192,51 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
     setHoverNode(node);
   }, []);
 
-  const handleNodeClick = useCallback((node: GraphNode) => {
-    // When a node is clicked, cancel any pending orbit actions.
-    setShouldOrbit(false);
-    if (orbitTimeoutRef.current) {
-      clearTimeout(orbitTimeoutRef.current);
-      orbitTimeoutRef.current = null;
-    }
-    if (orbitAnimationRef.current) {
-      cancelAnimationFrame(orbitAnimationRef.current);
-      orbitAnimationRef.current = null;
-    }
-    setSelectedNode(node);
+  const handleNodeClick = useCallback(
+    (node: GraphNode) => {
+      // Cancel any pending orbit actions.
+      setShouldOrbit(false);
+      if (orbitTimeoutRef.current) {
+        clearTimeout(orbitTimeoutRef.current);
+        orbitTimeoutRef.current = null;
+      }
+      if (orbitAnimationRef.current) {
+        cancelAnimationFrame(orbitAnimationRef.current);
+        orbitAnimationRef.current = null;
+      }
+      setSelectedNode(node);
 
-    // Initial camera transition to the node.
-    const distance = 150;
-    let targetX, targetY, targetZ;
-    if (Math.hypot(node.x, node.y, node.z) === 0) {
-      targetX = 200;
-      targetY = 400;
-      targetZ = 0;
-    } else {
-      const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
-      targetX = node.x * distRatio;
-      targetY = node.y * distRatio + 100;
-      targetZ = node.z * distRatio;
-    }
-    fgRef.current.cameraPosition(
-      { x: targetX, y: targetY, z: targetZ },
-      node,
-      3000
-    );
-    // After the camera transition, start orbiting.
-    orbitTimeoutRef.current = window.setTimeout(() => {
-      setShouldOrbit(true);
-    }, 3000);
-  }, []);
+      // If the node has socials, it’s a token node; update context.
+      if ('socials' in node) {
+        setSelectedToken(node);
+      } else {
+        setSelectedToken(null);
+      }
+
+      // Camera transition logic remains unchanged...
+      const distance = 150;
+      let targetX, targetY, targetZ;
+      if (Math.hypot(node.x, node.y, node.z) === 0) {
+        targetX = 200;
+        targetY = 400;
+        targetZ = 0;
+      } else {
+        const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+        targetX = node.x * distRatio;
+        targetY = node.y * distRatio + 100;
+        targetZ = node.z * distRatio;
+      }
+      fgRef.current.cameraPosition(
+        { x: targetX, y: targetY, z: targetZ },
+        node,
+        3000
+      );
+      orbitTimeoutRef.current = window.setTimeout(() => {
+        setShouldOrbit(true);
+      }, 3000);
+    },
+    [setSelectedToken]
+  );
 
   // Stop orbiting if the user interacts with the graph.
   useEffect(() => {
@@ -316,7 +330,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
           backgroundColor="#000000"
           graphData={graphData}
           nodeLabel={renderNodeLabel}
-          nodeAutoColorBy="name"
+          nodeAutoColorBy="ticker"
           enableNodeDrag={false}
           onNodeClick={handleNodeClick}
           onNodeHover={handleNodeHover}
@@ -329,7 +343,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
             if (!labelObj) {
               const nodeEl = document.createElement('div');
               nodeEl.className = 'node-label';
-              nodeEl.textContent = 'name' in node ? node.name : 'ADA';
+              nodeEl.textContent = 'ticker' in node ? node.ticker : 'ADA';
               nodeEl.style.color = '#ffffff';
               nodeEl.style.fontSize = '7px';
               nodeEl.style.fontWeight = 'bold';

@@ -1,3 +1,4 @@
+// components/planet-info.tsx
 'use client';
 import { Info } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,43 +9,48 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
-
-// Sample data structure
-const planetData = {
-  name: 'SNEK',
-  type: 'Memecoin',
-  image: '/snek.png',
-  description:
-    "Snek is the largest token in the Cardano ecosystem by market cap and by all-time trading volume. It is a memecoin that stands out by having built an ecosystem of products around its brand. These products include: Snek.fun (token launchpad), SNEKx (token minter), SNEKbot (telegram trading bot), SNEKalerts (alert bot for X, discord, and telegram), Kaa (AI infrastructure platform) and Snek Energy (energy drink).",
-  attributes: {
-    liquidity: '17.50M ₳',
-    "Market Cap": '431.43M ₳',
-    FDV: '437.23M ₳',
-    'Holders': '41,652',
-    'Circ Supply': '74.41B',
-    'Total Supply': '75.41B',
-  },
-  resources: [
-    { name: "Website"},
-    { name: "Twitter" },
-    { name: "Telegram" },
-    { name: "Discord" },
-  ],
-};
+import { useSelectedToken } from '@/contexts/SelectedTokenContext';
 
 export function PlanetInfo() {
+  const { selectedToken } = useSelectedToken();
+
+  if (!selectedToken) {
+    return (
+      <div className="p-4 text-zinc-400">
+        Click a token in the graph to see details.
+      </div>
+    );
+  }
+
+  console.log(selectedToken);
+
+  // Build token-specific info. You can customize these fields as needed.
+  const tokenData = {
+    name: selectedToken.ticker,
+    type: 'Token',
+    image: '/snek.png',
+    description: selectedToken.socials.description,
+    attributes: {
+      'Market Cap': selectedToken.mcap,
+      // You can add more attributes if available
+    },
+    resources: Object.entries(selectedToken.socials)
+      .filter(([key, value]) => key !== 'description' && !!value)
+      .map(([key, value]) => ({ name: key, url: value })),
+  };
+
   return (
     <TooltipProvider>
       <div className="flex flex-col w-full text-zinc-200">
         <div className="flex items-start gap-4 p-4 border-b border-zinc-800">
           <img
-            src={planetData.image || '/placeholder.svg'}
-            alt={planetData.name}
+            src={tokenData.image}
+            alt={tokenData.name}
             className="w-12 h-12 rounded-lg object-cover"
           />
           <div className="flex flex-col">
-            <h2 className="text-xl font-semibold">{planetData.name}</h2>
-            <p className="text-zinc-400">{planetData.type}</p>
+            <h2 className="text-xl font-semibold">{tokenData.name}</h2>
+            <p className="text-zinc-400">{tokenData.type}</p>
           </div>
         </div>
 
@@ -63,7 +69,7 @@ export function PlanetInfo() {
 
           <TabsContent value="description" className="p-4">
             <p className="text-zinc-300 leading-relaxed">
-              {planetData.description}
+              {tokenData.description}
             </p>
             <Button
               variant="outline"
@@ -75,7 +81,7 @@ export function PlanetInfo() {
 
           <TabsContent value="attributes" className="p-4">
             <div className="grid gap-2">
-              {Object.entries(planetData.attributes).map(([key, value]) => (
+              {Object.entries(tokenData.attributes).map(([key, value]) => (
                 <div
                   key={key}
                   className="flex justify-between py-2 border-b border-zinc-800"
@@ -95,7 +101,7 @@ export function PlanetInfo() {
 
           <TabsContent value="links" className="p-4">
             <div className="space-y-2">
-              {planetData.resources.map((resource) => (
+              {tokenData.resources.map((resource) => (
                 <div
                   key={resource.name}
                   className="flex items-center gap-3 p-2 bg-zinc-900 rounded-lg"

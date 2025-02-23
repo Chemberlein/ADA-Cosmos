@@ -50,7 +50,7 @@ export function renderNodeLabel(node: any) {
           <tr>
             <td className="p-2 border border-gray-300">Mcap</td>
             <td className="p-2 border border-gray-300">
-              ${node.marketCap.toLocaleString()} ₳
+              ${node.mcap.toLocaleString()} ₳
             </td>
           </tr>
         </tbody>
