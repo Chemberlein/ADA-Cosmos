@@ -1,4 +1,9 @@
 // app/dashboard/components/data/getTokensData.ts
+import {
+	TokenOHLCV,
+	TopMarketCapToken,
+	TradingStatsResponse,
+} from "@/interfaces/tokens";
 import { MarketTokensApiService } from "@/services/MarketTokensApiService";
 import { MetricsApiService } from "@/services/MetricsApiService";
 import { NftApiService } from "@/services/NftApiService";
@@ -10,14 +15,23 @@ export interface SunMarketData {
 	nftVolume: number;
 }
 
-export interface Token {
+type OHLCVTimeframe = "1h" | "4h" | "1d" | "1w" | "1M";
+
+type TradingStatsTimeframe = "1h" | "4h" | "24h" | "7d" | "30d";
+
+export interface TokenData {
 	unit: string;
 	ticker: string;
 	mcap: number;
-}
-
-// Extend your token interface to include socials data
-export interface TokenWithSocials extends Token {
+	holders: number;
+	ohlcv: {
+		timeframe: OHLCVTimeframe;
+		stats: TokenOHLCV;
+	}[];
+	tradingStats: {
+		timeframe: TradingStatsTimeframe;
+		stats: TradingStatsResponse;
+	}[];
 	socials: {
 		description: string;
 		discord: string;
@@ -35,7 +49,7 @@ export interface TokenWithSocials extends Token {
 }
 
 export async function getTokensData(): Promise<{
-	tokens: TokenWithSocials[];
+	tokens: TokenData[];
 	sunMarketData: SunMarketData;
 }> {
 	const marketTokensApi = new MarketTokensApiService();
@@ -43,13 +57,71 @@ export async function getTokensData(): Promise<{
 	const nftApi = new NftApiService();
 
 	// Fetch top market cap tokens (top 10)
-	const tokens = await marketTokensApi.getTopMarketCapTokens("mcap", 1, 10);
+	const tokens: TopMarketCapToken[] =
+		await marketTokensApi.getTopMarketCapTokens("mcap", 1, 10);
 
-	// For each token, fetch its socials data concurrently.
-	const tokensWithSocials: TokenWithSocials[] = await Promise.all(
+	const tokensData: TokenData[] = await Promise.all(
 		tokens.map(async (token) => {
+			// Fetch socials and holders data
 			const socials = await marketTokensApi.getTokenLinks(token.unit);
-			return { ...token, socials };
+			const holdersRes = await marketTokensApi.getTokenHolders(
+				token.unit
+			);
+
+			// Prepare OHLCV data for several timeframes.
+			const ohlcvTimeframes: ("1h" | "4h" | "1d" | "1w" | "1M")[] = [
+				"1h",
+				"4h",
+				"1d",
+				"1w",
+				"1M",
+			];
+			const ohlcv = await Promise.all(
+				ohlcvTimeframes.map(async (timeframe) => {
+					// Fetch OHLCV data
+					const stats = await marketTokensApi.getTokenPriceOHLCV(
+						token.unit,
+						"",
+						timeframe,
+						1
+					);
+					return {
+						timeframe,
+						stats: stats[0],
+					};
+				})
+			);
+
+			// Prepare trading stats for several timeframes.
+			const tradingStatsTimeframes: (
+				| "1h"
+				| "4h"
+				| "24h"
+				| "7d"
+				| "30d"
+			)[] = ["1h", "4h", "24h", "7d", "30d"];
+			const tradingStats = await Promise.all(
+				tradingStatsTimeframes.map(async (timeframe) => {
+					const stats = await marketTokensApi.getTradingStats(
+						token.unit,
+						timeframe
+					);
+					return {
+						timeframe,
+						stats,
+					};
+				})
+			);
+
+			return {
+				unit: token.unit,
+				ticker: token.ticker,
+				mcap: token.mcap,
+				holders: holdersRes.holders,
+				socials,
+				ohlcv,
+				tradingStats,
+			};
 		})
 	);
 
@@ -65,5 +137,5 @@ export async function getTokensData(): Promise<{
 		nftVolume: nftStatsRes.volume,
 	};
 
-	return { tokens: tokensWithSocials, sunMarketData };
+	return { tokens: tokensData, sunMarketData };
 }
