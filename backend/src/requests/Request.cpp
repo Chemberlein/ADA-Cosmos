@@ -36,18 +36,17 @@ Request::Request(const std::string& endpoint){
 	std::string keyParam = "x-api-key: "+key;
     m_headers = curl_slist_append(m_headers, keyParam.c_str());
 	m_url = "https://openapi.taptools.io/api/v1/" + endpoint;
-    m_curl = curl_easy_init();
-	if (!m_curl)
-		throw std::runtime_error("Faild to init curl");
 }
 
 Request::~Request(){
-	curl_slist_free_all(m_headers);
-	curl_easy_cleanup(m_curl);
 }
 
 nlohmann::json Request::get(const nlohmann::json& params){
+	CURL* m_curl;
     CURLcode res;
+    m_curl = curl_easy_init();
+	if (!m_curl)
+		throw std::runtime_error("Faild to init curl");
 	std::string request = m_url + paramsToUrlFormat(params);
     std::string readBuffer;
 	curl_easy_setopt(m_curl, CURLOPT_URL, request.c_str());
@@ -67,6 +66,8 @@ nlohmann::json Request::get(const nlohmann::json& params){
 		std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
 		throw std::runtime_error("Curl failed");
 	}
+	curl_slist_free_all(m_headers);
+	curl_easy_cleanup(m_curl);
 	return  nlohmann::json::parse(readBuffer);
 }
 }
