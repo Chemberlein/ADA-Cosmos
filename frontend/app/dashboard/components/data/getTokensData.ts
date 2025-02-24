@@ -33,18 +33,18 @@ export interface TokenData {
 		stats: TradingStatsResponse;
 	}[];
 	socials: {
-		description: string;
-		discord: string;
-		email: string;
-		facebook: string;
-		github: string;
-		instagram: string;
-		medium: string;
-		reddit: string;
-		telegram: string;
-		twitter: string;
-		website: string;
-		youtube: string;
+		description: string | null;
+		discord: string | null;
+		email: string | null;
+		facebook: string | null;
+		github: string | null;
+		instagram: string | null;
+		medium: string | null;
+		reddit: string | null;
+		telegram: string | null;
+		twitter: string | null;
+		website: string | null;
+		youtube: string | null;
 	};
 }
 
@@ -58,7 +58,7 @@ export async function getTokensData(): Promise<{
 
 	// Fetch top market cap tokens (top 10)
 	const tokens: TopMarketCapToken[] =
-		await marketTokensApi.getTopMarketCapTokens("mcap", 1, 10);
+		await marketTokensApi.getTopMarketCapTokens("mcap", 1, 1);
 
 	const tokensData: TokenData[] = await Promise.all(
 		tokens.map(async (token) => {

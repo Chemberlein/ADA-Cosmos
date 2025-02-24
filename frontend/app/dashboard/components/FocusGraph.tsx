@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { SunMarketData, Token } from './data/getTokensData';
+import { SunMarketData, TokenData } from './data/getTokensData';
 import TokensGraphClient from './TokensGraphClient';
 
 interface FocusGraphProps {
-  data: {
-    tokens: Token[];
-    sunMarketData: SunMarketData;
-  };
+	data: {
+		tokens: TokenData[];
+		sunMarketData: SunMarketData;
+	};
 }
 
 const FocusGraph: React.FC<FocusGraphProps> = ({ data }) => {

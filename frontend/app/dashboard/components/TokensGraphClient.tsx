@@ -23,7 +23,7 @@ const MAX_NODE_SIZE = 30;
 const orbitGap = 30;
 const offset = 3;
 
-interface TokenDataNode extends TokenData {
+export interface TokenDataNode extends TokenData {
 	id: string;
 	val: number;
 	x: number;
@@ -51,7 +51,7 @@ interface SunNode {
 type GraphNode = TokenDataNode | SunNode;
 
 interface CardanoTokensGraphClientProps {
-	tokens: TokenDataNode[];
+	tokens: TokenData[];
 	sunMarketData: SunMarketData;
 }
 
@@ -138,8 +138,6 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = ({
 				tradingStats: token.tradingStats,
 			} as TokenDataNode;
     });
-
-    console.log(computedNodes);
     
 		// Add sun node at the center
 		if (sunMarketData) {
