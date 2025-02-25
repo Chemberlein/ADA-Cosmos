@@ -53,7 +53,7 @@ export function AppSidebar() {
               <p>ADA Kosmos</p>
             </div>
           </SidebarGroupLabel>
-          <SidebarGroupContent className='mb-6'>
+          <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -68,6 +68,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <SidebarSeparator />
         <SidebarSeparator />
         <SidebarRail />
         <SidebarGroupContent className="group-data-[collapsible=icon]:hidden">

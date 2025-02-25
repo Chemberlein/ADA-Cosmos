@@ -14,19 +14,19 @@ export function renderNodeLabel(node: any) {
           <tr>
             <td className="p-2 border border-gray-300">ADA Price</td>
             <td className="p-2 border border-gray-300">
-              ${node.marketData?.adaPrice?.toFixed(3) || 'N/A'}
+              {node.marketData?.adaPrice?.toFixed(3) || 'N/A'} $
             </td>
           </tr>
           <tr>
             <td className="p-2 border border-gray-300">24H DEX Volume</td>
             <td className="p-2 border border-gray-300">
-              ₳{node.marketData?.dexVolume?.toLocaleString() || 'N/A'}
+              {node.marketData?.dexVolume?.toLocaleString() || 'N/A'} ₳
             </td>
           </tr>
           <tr>
             <td className="p-2 border border-gray-300">24H NFT Volume</td>
             <td className="p-2 border border-gray-300">
-              ₳{node.marketData?.nftVolume?.toLocaleString() || 'N/A'}
+              {node.marketData?.nftVolume?.toLocaleString() || 'N/A'} ₳
             </td>
           </tr>
           <tr>
@@ -50,7 +50,7 @@ export function renderNodeLabel(node: any) {
           <tr>
             <td className="p-2 border border-gray-300">Mcap</td>
             <td className="p-2 border border-gray-300">
-              ${node.mcap.toLocaleString()} ₳
+              {node.mcap.toLocaleString()} ₳
             </td>
           </tr>
         </tbody>

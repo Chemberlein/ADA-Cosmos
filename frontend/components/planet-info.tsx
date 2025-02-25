@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useSelectedToken } from '@/contexts/SelectedTokenContext';
+import { SocialIcon } from 'react-social-icons';
 
 export default function TokenStats() {
   const { selectedToken } = useSelectedToken();
@@ -38,11 +39,14 @@ export default function TokenStats() {
     '30d': '1M',
   };
 
-  // Compute the OHLCV difference (close - open) for each timeframe
+  // Compute the OHLCV percentage change for each timeframe
   const timeframeDiffs = timeframes.reduce((acc, tf) => {
     const mapKey = timeframeMapping[tf];
     const data = selectedToken.ohlcv.find((item) => item.timeframe === mapKey);
-    acc[tf] = data ? data.stats.close - data.stats.open : 0;
+    acc[tf] =
+      data && data.stats.open !== 0
+        ? ((data.stats.close - data.stats.open) / data.stats.open) * 100
+        : 0;
     return acc;
   }, {} as Record<string, number>);
 
@@ -53,7 +57,7 @@ export default function TokenStats() {
   return (
     <div className="flex flex-col w-full text-zinc-200">
       {/* Header */}
-      <div className="flex items-start gap-4 p-4 border-b border-zinc-800">
+      <div className="flex items-start gap-4 border-b border-zinc-800 p-3 pt-1">
         <img
           src={'/placeholder.svg'}
           alt={selectedToken.ticker}
@@ -67,8 +71,8 @@ export default function TokenStats() {
 
       {/* Tabs */}
       <Tabs defaultValue="description" className="w-full">
-        <TabsList className="w-full justify-start rounded-none border-b border-zinc-800 bg-transparent h-auto p-0">
-          {['Description', 'Attributes', 'Links'].map((tab) => (
+        <TabsList className="w-full justify-around rounded-none border-b border-zinc-800 bg-transparent h-auto p-0">
+          {['Description', 'Market', 'Swap'].map((tab) => (
             <TabsTrigger
               key={tab}
               value={tab.toLowerCase()}
@@ -80,43 +84,64 @@ export default function TokenStats() {
         </TabsList>
 
         {/* Description Tab */}
-        <TabsContent value="description" className="p-4">
-          <p className="text-zinc-300 leading-relaxed">
+        <TabsContent value="description" className="p-2">
+          <p className="text-zinc-300 leading-relaxed mt-4">
             {selectedToken.socials.description || 'No description available.'}
           </p>
-          <Button
-            variant="outline"
-            className="mt-4 bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
-          >
-            SWAP
-          </Button>
+          <div className="space-y-2">
+            {Object.entries(selectedToken.socials)
+              .filter(([key, value]) => key !== 'description' && value)
+              .map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-3 p-2 bg-zinc-900 rounded-lg"
+                >
+                  {/* Replace the custom icon with SocialIcon */}
+                  <SocialIcon
+                    url={value || undefined}
+                    style={{ height: '48px', width: '48px' }}
+                    bgColor="#18181b" // you can customize colors as needed
+                  />
+                  <div className="flex flex-col">
+                    <a
+                      href={value ?? '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-400 hover:underline"
+                    >
+                      <span className="text-zinc-100 capitalize">{key}</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+          </div>
         </TabsContent>
 
-        {/* Attributes Tab */}
-        <TabsContent value="attributes" className="p-4">
-          <div className="grid gap-2">
-            {/* Basic Stats */}
-            <div className="space-y-2">
-              <div className="flex justify-between py-2 border-b border-zinc-800">
-                <span className="text-zinc-400">Market Cap</span>
-                <span className="text-zinc-100 font-medium">
-                  {selectedToken.mcap
-                    ? selectedToken.mcap.toLocaleString()
-                    : 'N/A'}
-                </span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-zinc-800">
-                <span className="text-zinc-400">Holders</span>
-                <span className="text-zinc-100 font-medium">
-                  {selectedToken.holders
-                    ? selectedToken.holders.toLocaleString()
-                    : 'N/A'}
-                </span>
-              </div>
+        {/* Market Tab */}
+        <TabsContent value="market" className="p-4 pt-0">
+          {/* Basic Stats */}
+          <div className="space-y-2 pb-2">
+            <div className="flex justify-between py-2 border-b border-zinc-800">
+              <span className="text-zinc-400">Market Cap</span>
+              <span className="text-zinc-100 font-medium">
+                {selectedToken.mcap
+                  ? selectedToken.mcap.toLocaleString()
+                  : 'N/A'}{' '}
+                ₳
+              </span>
             </div>
-
+            <div className="flex justify-between py-2 border-b border-zinc-800">
+              <span className="text-zinc-400">Holders</span>
+              <span className="text-zinc-100 font-medium">
+                {selectedToken.holders
+                  ? selectedToken.holders.toLocaleString()
+                  : 'N/A'}
+              </span>
+            </div>
+          </div>
+          <div className="grid gap-2">
             {/* Timeframe Buttons (styled like old component) */}
-            <div className="flex justify-between gap-2">
+            <div className="flex justify-between">
               {timeframes.map((tf) => (
                 <div
                   key={tf}
@@ -133,32 +158,27 @@ export default function TokenStats() {
                         : 'text-red-500'
                     }`}
                   >
-                    {timeframeDiffs[tf].toFixed(4)}
+                    {timeframeDiffs[tf].toFixed(2)} %
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Trading Activity */}
             {tradingStatsData ? (
               <div className="space-y-4">
                 {/* Buys vs Sells */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-400">Buys</span>
-                    <span className="text-zinc-400">Sells</span>
+                <div className="space-y-2 border-y border-zinc-800 py-4">
+                  {/* Single row for labels & values */}
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <div className="flex flex-col items-start">
+                      <span className="text-zinc-400">Buys</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-zinc-400">Sells</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-green-500">
-                      {tradingStatsData.stats.buys}
-                    </span>
-                    <span className="text-red-500">
-                      {tradingStatsData.stats.sells}
-                    </span>
-                  </div>
-                  {/* NEW: two slices for the progress bar */}
+                  {/* Progress bar */}
                   <div className="relative h-2 bg-zinc-800 rounded-full overflow-hidden flex">
-                    {/* Green portion (buys) */}
                     <div
                       className="h-full bg-green-500"
                       style={{
@@ -170,7 +190,6 @@ export default function TokenStats() {
                         }%`,
                       }}
                     />
-                    {/* Red portion (sells) */}
                     <div
                       className="h-full bg-red-500"
                       style={{
@@ -183,25 +202,33 @@ export default function TokenStats() {
                       }}
                     />
                   </div>
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <div className="flex flex-col items-start">
+                      <span className="text-green-500">
+                        {tradingStatsData.stats.buys.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-red-500">
+                        {tradingStatsData.stats.sells.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Buy Volume vs Sell Volume */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-400">Buy Volume</span>
-                    <span className="text-zinc-400">Sell Volume</span>
+                <div className="space-y-2 border-b border-zinc-800 pb-4">
+                  {/* Single row for labels & values */}
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <div className="flex flex-col items-start">
+                      <span className="text-zinc-400">Buy Volume</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-zinc-400">Sell Volume</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-green-500">
-                      {tradingStatsData.stats.buyVolume}
-                    </span>
-                    <span className="text-red-500">
-                      {tradingStatsData.stats.sellVolume}
-                    </span>
-                  </div>
-                  {/* NEW: two slices for the progress bar */}
+                  {/* Progress bar */}
                   <div className="relative h-2 bg-zinc-800 rounded-full overflow-hidden flex">
-                    {/* Green portion (buyVolume) */}
                     <div
                       className="h-full bg-green-500"
                       style={{
@@ -213,7 +240,6 @@ export default function TokenStats() {
                         }%`,
                       }}
                     />
-                    {/* Red portion (sellVolume) */}
                     <div
                       className="h-full bg-red-500"
                       style={{
@@ -226,25 +252,33 @@ export default function TokenStats() {
                       }}
                     />
                   </div>
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <div className="flex flex-col items-start">
+                      <span className="text-green-500">
+                        {tradingStatsData.stats.buyVolume.toLocaleString()} ₳
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-red-500">
+                        {tradingStatsData.stats.sellVolume.toLocaleString()} ₳
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Buyers vs Sellers */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-400">Buyers</span>
-                    <span className="text-zinc-400">Sellers</span>
+                <div className="space-y-2 border-b border-zinc-800 pb-4">
+                  {/* Single row for labels & values */}
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <div className="flex flex-col items-start">
+                      <span className="text-zinc-400">Buyers</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-zinc-400">Sellers</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-green-500">
-                      {tradingStatsData.stats.buyers}
-                    </span>
-                    <span className="text-red-500">
-                      {tradingStatsData.stats.sellers}
-                    </span>
-                  </div>
-                  {/* NEW: two slices for the progress bar */}
+                  {/* Progress bar */}
                   <div className="relative h-2 bg-zinc-800 rounded-full overflow-hidden flex">
-                    {/* Green portion (buyers) */}
                     <div
                       className="h-full bg-green-500"
                       style={{
@@ -256,7 +290,6 @@ export default function TokenStats() {
                         }%`,
                       }}
                     />
-                    {/* Red portion (sellers) */}
                     <div
                       className="h-full bg-red-500"
                       style={{
@@ -269,6 +302,18 @@ export default function TokenStats() {
                       }}
                     />
                   </div>
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <div className="flex flex-col items-start">
+                      <span className="text-green-500">
+                        {tradingStatsData.stats.buyers.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-red-500">
+                        {tradingStatsData.stats.sellers.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -276,50 +321,11 @@ export default function TokenStats() {
                 No trading stats available for this timeframe.
               </div>
             )}
-
-            <Button
-              variant="outline"
-              className="mt-4 bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
-            >
-              SWAP
-            </Button>
           </div>
         </TabsContent>
 
         {/* Links Tab */}
-        <TabsContent value="links" className="p-4">
-          <div className="space-y-2">
-            {Object.entries(selectedToken.socials)
-              .filter(([key, value]) => key !== 'description' && value)
-              .map(([key, value]) => (
-                <div
-                  key={key}
-                  className="flex items-center gap-3 p-2 bg-zinc-900 rounded-lg"
-                >
-                  <div className="w-6 h-6 bg-zinc-800 rounded-full flex items-center justify-center">
-                    <span className="text-xs">🌍</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-zinc-100 capitalize">{key}</span>
-                    <a
-                      href={value ?? '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-400 hover:underline"
-                    >
-                      {value}
-                    </a>
-                  </div>
-                </div>
-              ))}
-          </div>
-          <Button
-            variant="outline"
-            className="mt-4 bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
-          >
-            SWAP
-          </Button>
-        </TabsContent>
+        <TabsContent value="swap" className="p-4"></TabsContent>
       </Tabs>
     </div>
   );
