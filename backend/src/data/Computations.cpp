@@ -36,7 +36,7 @@ struct LogReturnsGraphEdge
 };
 
 void generateLogReturnsGraph(){
-	TopLiquidityTokens tokens(100);
+	TopLiquidityTokens tokens(50);
 	std::vector<LogReturnsGraphNode> nodes;
 
 	std::vector<std::string> tokensUnits = tokens.getVectorOfUnits();
@@ -63,14 +63,18 @@ void generateLogReturnsGraph(){
 	
 	nlohmann::json links = nlohmann::json::array();
 	std::vector<LogReturnsGraphEdge> edges;
-	for (auto nodeA : nodes){	
-		for (auto nodeB : nodes){
+	for (auto i = 0; i < nodes.size() - 1; i++){
+		for (auto j = i +1; j < nodes.size(); j++){
+
+			auto nodeA = nodes[i];
+			auto nodeB = nodes[j];
 
 			if (nodeA.ticker == nodeB.ticker)
 				continue;
 
 			std::vector<std::pair<std::size_t, float>> avgLROTA = nodeA.data.getAvgLogReturnsOverTime();
 			std::vector<std::pair<std::size_t, float>> avgLROTB = nodeB.data.getAvgLogReturnsOverTime();
+
 			std::size_t startA = 0;
 			std::size_t startB = 0;
 			std::size_t n = 0;
@@ -117,6 +121,7 @@ void generateLogReturnsGraph(){
 			link["source"] = nodeA.unit;
 			link["target"] = nodeB.unit;
 			link["avarageCorilation"] = avarageCorilation;
+			link["nbOfMesurments"] = n;
 			links.push_back(link);
 		}
 	}
