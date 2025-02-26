@@ -1,14 +1,14 @@
 'use client';
 
-import { Token } from "@clerk/nextjs/server";
-import OHLCTable from "./tokens";
-import TopLiquidityTokens from "./tokensLiquidity";
-import CorilationPath from "./graph";
+import FocusGraphWrapper from "./FocusGraphWrapper";
 
-export default function Dashboard() {
+
+
+export default async function Dashboard() {
   return (
-    <main className="overflow-hidden">
-      <CorilationPath />
+    <main className="min-h-screen w-full">
+      <FocusGraphWrapper />
     </main>
   );
 }
+
