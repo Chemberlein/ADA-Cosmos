@@ -1,5 +1,5 @@
-#include "Request.hpp"
-#include "tools/Tools.hpp"
+#include "requests/request.hpp"
+#include "tools/tools.hpp"
 
 #include <iostream>
 #include <string>

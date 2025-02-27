@@ -1,9 +1,10 @@
-#include "Computations.hpp"
-#include "requests/TopLiquidityTokens.hpp"
-#include "requests/TokenPriceOHLCV.hpp"
+#include "data/computations.hpp"
+#include "requests/topLiquidityTokens.hpp"
+#include "requests/tokenPriceOHLCV.hpp"
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 
 using namespace table;
@@ -35,8 +36,8 @@ struct LogReturnsGraphEdge
 	float avarageCorilation;
 };
 
-void generateLogReturnsGraph(){
-	TopLiquidityTokens tokens(50);
+void generateLogReturnsGraph(std::string filePath){
+	TopLiquidityTokens tokens(100);
 	std::vector<LogReturnsGraphNode> nodes;
 
 	std::vector<std::string> tokensUnits = tokens.getVectorOfUnits();
@@ -129,7 +130,10 @@ void generateLogReturnsGraph(){
 	nlohmann::json resultOutput;
 	resultOutput["nodes"] = nodesJ;
 	resultOutput["links"] = links;
-	std::cout<<resultOutput.dump(2)<<std::endl;
+	
+	std::ofstream outputFile(filePath);
+	outputFile << resultOutput.dump(2);
+	outputFile.close();
 
 }
 

@@ -1,6 +1,5 @@
-#include "Table.hpp"
-
-#include "tools/Tools.hpp"
+#include "data/table.hpp"
+#include "tools/tools.hpp"
 
 #include <nlohmann/json.hpp>
 

@@ -1,76 +1,76 @@
-#include "TokenPriceOHLCV.hpp"
+#include "requests/tokenPriceOHLCV.hpp"
+#include <algorithm>
+#include <stdexcept>
 
-#include <iostream>
-#include <math.h>
-
-namespace requests{
+namespace requests {
 
 TokenOHLC::TokenOHLC(const std::string& unit)
-	: m_request("token/ohlcv")
-	, m_unit(unit)
-{
-	update();
+    : m_request("token/ohlcv")
+    , m_unit(unit) {
+    update();
 }
 
-void TokenOHLC::update(){
-	m_data.clear();
+void TokenOHLC::update() {
+    m_data.clear();
+    m_avgLogReturnsOverTime.clear();
 
-	nlohmann::json params;
-	params["unit"] = m_unit;
-	params["interval"] = "1d";
-	params["numIntervals"] = 365;
-	nlohmann::json resualt = m_request.get(params);
+    nlohmann::json params{
+        {"unit", m_unit},
+        {"interval", "12h"},
+        {"numIntervals", 1000}
+    };
 
-	for ( auto item : resualt)
-	{
-		m_data.push_back(
-			OHLC{
-				.time = item["time"],
-				.volume = item["volume"],
-				.open = item["open"],
-				.high = item["high"],
-				.low = item["low"],
-				.close = item["close"]
-			});
-	}
+    try {
+        const nlohmann::json result = m_request.get(params);
+        m_data.reserve(result.size());
 
-	std::sort(m_data.begin(), m_data.end(), [](auto& a, auto& b) {
-		return a.time < b.time;
-	});
+        for (const auto& item : result) {
+            m_data.push_back(OHLC{
+                .time = item["time"],
+                .volume = item["volume"],
+                .open = item["open"],
+                .high = item["high"],
+                .low = item["low"],
+                .close = item["close"]
+            });
+        }
 
-	float sumLogreturns = 0;
-	for (auto i = 1; i < m_data.size(); i++)
-	{
-		float logReturn = std::log( ((m_data[i].high + m_data[i].low) * 0.5)
-		                  / ((m_data[i - 1].high + m_data[i - 1].low) * 0.5));
-		sumLogreturns += logReturn;
+        std::sort(m_data.begin(), m_data.end(), 
+            [](const auto& a, const auto& b) { return a.time < b.time; });
 
-		m_avgLogReturnsOverTime.push_back(
-		   std::make_pair(
-			   m_data[i].time,
-			   logReturn
-			)
-		);
-	}
-	m_avgLogReturn = sumLogreturns / (m_data.size() - 1);
+        calculateLogReturns();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Failed to update token data: " + std::string(e.what()));
+    }
 }
 
-std::vector<std::pair<std::size_t, float>> TokenOHLC::getAvgLogReturnsOverTime() const{
-	return m_avgLogReturnsOverTime;
+void TokenOHLC::calculateLogReturns() {
+    if (m_data.size() < 2) {
+        return;
+    }
+
+    float sumLogReturns = 0.0f;
+    m_avgLogReturnsOverTime.reserve(m_data.size() - 1);
+
+    for (size_t i = 1; i < m_data.size(); ++i) {
+        const float prevAvgPrice = (m_data[i-1].high + m_data[i-1].low) * 0.5f;
+        const float currAvgPrice = (m_data[i].high + m_data[i].low) * 0.5f;
+        
+        const float logReturn = std::log(currAvgPrice / prevAvgPrice);
+        sumLogReturns += logReturn;
+
+        m_avgLogReturnsOverTime.emplace_back(m_data[i].time, logReturn);
+    }
+
+    m_avgLogReturn = sumLogReturns / (m_data.size() - 1);
 }
 
-float TokenOHLC::getAverageLogReturn(){
-	return m_avgLogReturn;
+std::vector<std::pair<std::size_t, float>> TokenOHLC::getAvgLogReturnsOverTime() const {
+    return m_avgLogReturnsOverTime;
 }
 
-void TokenOHLC::printInCSVFormat()
-{
-	std::cout<< m_colNames[0]<<","<< m_colNames[1] <<","<< m_colNames[2]<<"," << m_colNames[3]<<"," << m_colNames[4]<<"," << m_colNames[5]<<std::endl;
-	for (auto item : m_data)
-	{
-		std::cout<< item.time <<","<< item.volume <<","<< item.open <<"," << item.high <<"," << item.low <<"," << item.close <<std::endl;
-	}
-	std::cout<<std::endl;
+float TokenOHLC::getAverageLogReturn() {
+    return m_avgLogReturn;
 }
 
-}
+} // namespace requests
