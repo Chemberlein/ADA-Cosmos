@@ -43,7 +43,7 @@ export default function TokenStats() {
 
 			<Tabs defaultValue="description" className="w-full">
 				<TabsList className="w-full justify-around rounded-none border-b border-zinc-800 bg-transparent h-auto p-0">
-					{["Description", "Market", "Swap"].map((tab) => (
+					{["Description", "Market Stats", "Swap"].map((tab) => (
 						<TabsTrigger
 							key={tab}
 							value={tab.toLowerCase()}
@@ -58,7 +58,7 @@ export default function TokenStats() {
 					<DescriptionTab token={selectedToken} />
 				</TabsContent>
 
-				<TabsContent value="market">
+				<TabsContent value="market stats">
 					<MarketTab
 						token={selectedToken}
 						selectedTimeframe={selectedTimeframe}
