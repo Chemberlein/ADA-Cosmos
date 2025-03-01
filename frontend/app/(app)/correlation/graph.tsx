@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import ForceGraph2D from "react-force-graph-2d";
+import ForceGraph3D from "react-force-graph-3d";
 import rawGraphData from "../../../../graphData/graphV2.json";
 import { Controls } from "./components/Controls";
 import { GraphData } from "./types";
@@ -83,7 +84,7 @@ const CorailationPath = () => {
         onMeasurementsChange={setMinMeasurements}
         onZoomToFit={() => fgRef.current.zoomToFit(400)}
       />
-      <ForceGraph2D
+      <ForceGraph3D
         ref={fgRef}
         graphData={data}
         width={dimensions.width}
