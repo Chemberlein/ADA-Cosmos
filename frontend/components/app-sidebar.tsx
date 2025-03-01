@@ -16,7 +16,7 @@ import { ClerkLoading, ClerkLoaded, UserButton } from '@clerk/nextjs';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from './ui/button';
 import Image from 'next/image';
-import PlanetInfo from './planet-info';
+import TokenStats from './sidebar/tokenStats';
 
 // Menu items.
 const items = [
@@ -72,7 +72,7 @@ export function AppSidebar() {
         <SidebarSeparator />
         <SidebarRail />
         <SidebarGroupContent className="group-data-[collapsible=icon]:hidden">
-          <PlanetInfo />
+          <TokenStats />
         </SidebarGroupContent>
         <SidebarFooter>
           {/* <ThemeToggle /> */}
