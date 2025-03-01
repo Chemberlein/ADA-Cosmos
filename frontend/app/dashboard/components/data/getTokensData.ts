@@ -58,7 +58,7 @@ export async function getTokensData(): Promise<{
 
 	// Fetch top market cap tokens (top 10)
 	const tokens: TopMarketCapToken[] =
-		await marketTokensApi.getTopMarketCapTokens("mcap", 1, 10);
+		await marketTokensApi.getTopMarketCapTokens("mcap", 1, 1);
 
 	const tokensData: TokenData[] = await Promise.all(
 		tokens.map(async (token) => {
