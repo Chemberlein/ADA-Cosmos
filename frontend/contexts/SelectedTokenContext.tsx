@@ -1,6 +1,6 @@
 "use client";
 
-import { TokenDataNode } from "@/app/dashboard/components/TokensGraphClient";
+import { TokenDataNode } from "@/app/(app)/dashboard/components/TokensGraphClient";
 import React, { createContext, useState, useContext } from "react";
 
 interface SelectedTokenContextType {

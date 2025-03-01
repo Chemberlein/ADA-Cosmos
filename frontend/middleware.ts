@@ -19,6 +19,11 @@ export default clerkMiddleware(async (auth, req) => {
 	if (isProtectedRoute(req)) {
 		await auth.protect();
 	}
+
+	// Add the pathname to the headers for use in the layout
+	const response = NextResponse.next();
+	response.headers.set("x-pathname", req.nextUrl.pathname);
+	return response;
 });
 
 export const config = {

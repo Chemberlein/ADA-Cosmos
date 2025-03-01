@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import ForceGraph2D from "react-force-graph-2d";
-import rawGraphData from "../../../graphData/graphV2.json";
+import rawGraphData from "../../../../graphData/graphV2.json";
 import { Controls } from "./components/Controls";
 import { GraphData } from "./types";
 import { GRAPH_CONSTANTS } from "./constants/graph";
