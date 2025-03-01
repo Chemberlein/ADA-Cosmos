@@ -6,6 +6,7 @@ import { TIMEFRAME_MAPPING } from "./types";
 import TokenHeader from "./tabs/tokenHeader";
 import DescriptionTab from "./tabs/descriptionTab";
 import MarketTab from "./tabs/marketTab";
+import SwapComponent from "./tabs/swapTab";
 
 export default function TokenStats() {
 	const { selectedToken } = useSelectedToken();
@@ -68,7 +69,7 @@ export default function TokenStats() {
 				</TabsContent>
 
 				<TabsContent value="swap" className="p-4">
-					{/* Swap tab content would go here */}
+					<SwapComponent />
 				</TabsContent>
 			</Tabs>
 		</div>
