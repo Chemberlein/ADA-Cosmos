@@ -2,6 +2,7 @@ import ReactDOMServer from 'react-dom/server';
 import React from 'react';
 
 export function renderNodeLabel(node: any) {
+  console.log(node);
   if (node.id === 'sun') {
     return ReactDOMServer.renderToStaticMarkup(
       <table className="border-collapse text-center">
@@ -44,7 +45,7 @@ export function renderNodeLabel(node: any) {
         <tbody>
           <tr>
             <td colSpan={2} className="p-2 font-bold border border-gray-300">
-              ${node.name}
+              ${node.ticker}
             </td>
           </tr>
           <tr>

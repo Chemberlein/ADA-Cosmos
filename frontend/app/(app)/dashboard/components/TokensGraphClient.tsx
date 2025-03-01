@@ -392,7 +392,7 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = memo(
 
 			// Lower transition duration for smoother animation
 			const transitionDuration = 50;
-			const orbitSpeed = 0.00015;
+			const orbitSpeed = 0.00002;
 
 			let lastTime = 0;
 			const frameInterval = 50; // ms between updates (lower = smoother but more CPU intensive)
