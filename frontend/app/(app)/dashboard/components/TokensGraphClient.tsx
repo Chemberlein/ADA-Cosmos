@@ -524,11 +524,11 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = memo(
 						nodeEl.textContent =
 							"ticker" in node ? node.ticker : "ADA";
 						nodeEl.style.color = "#ffffff";
-						nodeEl.style.fontSize = "7px";
+						nodeEl.style.fontSize = "12px";
 						nodeEl.style.fontWeight = "bold";
 						nodeEl.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
-						nodeEl.style.borderRadius = "4px";
-						nodeEl.style.padding = "2px 2px";
+						nodeEl.style.borderRadius = "6px";
+						nodeEl.style.padding = "1px 2px";
 
 						// Store for reuse
 						nodeLabelCache.current.set(node.id, nodeEl);
