@@ -58,8 +58,8 @@ const CorrelationGraph = () => {
 		GRAPH_CONSTANTS.INITIAL_CORRELATION_THRESHOLD
 	);
 	const [minMeasurements, setMinMeasurements] = useState<number>(
-			GRAPH_CONSTANTS.INITIAL_MIN_MEASUREMENTS
-		);
+		GRAPH_CONSTANTS.INITIAL_MIN_MEASUREMENTS
+	);
 
 	const data: GraphData = {
 		nodes: rawGraphData.nodes,
@@ -325,8 +325,12 @@ const CorrelationGraph = () => {
 			<Controls
 				correlationThreshold={correlationThreshold}
 				minMeasurements={minMeasurements}
-				onCorrelationChange={(value: number) => setCorrelationThreshold(value)}
-				onMeasurementsChange={(value: number) => setMinMeasurements(value)}
+				onCorrelationChange={(value: number) =>
+					setCorrelationThreshold(value)
+				}
+				onMeasurementsChange={(value: number) =>
+					setMinMeasurements(value)
+				}
 				onZoomToFit={() => fgRef.current.zoomToFit(400)}
 			/>
 			<ForceGraph3D
@@ -345,10 +349,11 @@ const CorrelationGraph = () => {
 							correlation
 					);
 				}}
-				linkColor={(link) =>
-					link.averageCorrelation! > 0
-						? "rgba(255, 255, 255, 0.2)"
-						: "rgba(255, 0, 0, 0.2)"
+				linkColor={
+					(link) =>
+						link.averageCorrelation! > 0
+							? "rgba(255, 255, 255, 0.9)" // Increased from 0.2 to 0.6
+							: "rgba(255, 0, 0, 0.9)" // Increased from 0.2 to 0.6
 				}
 				nodeRelSize={6}
 				nodeVal={(node) => {
