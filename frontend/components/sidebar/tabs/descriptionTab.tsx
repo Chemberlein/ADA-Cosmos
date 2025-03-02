@@ -8,7 +8,7 @@ const DescriptionTab = ({ token }: { token: Token }) => (
 	<div className="p-4">
 		{/* Description section with improved spacing and line height */}
 		<div className="mb-6">
-			<p className="text-zinc-300 leading-relaxed">
+			<p className="text-zinc-300 leading-relaxed text-xs">
 				{token.socials.description || "No description available."}
 			</p>
 		</div>

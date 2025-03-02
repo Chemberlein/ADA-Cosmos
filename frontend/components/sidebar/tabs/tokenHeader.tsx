@@ -5,7 +5,7 @@ import { Token } from "../types";
 const TokenHeader = ({ token }: { token: Token }) => (
 	<div className="flex items-start gap-4 border-b border-zinc-800 p-3 pt-1">
 		<img
-			src={"/placeholder.svg"}
+			src={`${token.ticker}.webp`}
 			alt={token.ticker}
 			className="w-12 h-12 rounded-lg object-cover"
 		/>
