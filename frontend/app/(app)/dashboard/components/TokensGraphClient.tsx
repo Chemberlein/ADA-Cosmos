@@ -311,23 +311,19 @@ const TokensGraphClient: React.FC<CardanoTokensGraphClientProps> = memo(
       // Add wallet node if wallet data is available
       if (walletAddress && walletData) {
         // Place wallet node at a specific orbit (between the first and second token)
-        const walletOrbitRadius = 2;
+        const walletOrbitRadius = 1;
         const walletAngle = Math.random() * 2 * Math.PI;
-        const walletX = walletOrbitRadius * Math.cos(walletAngle);
-        const walletZ = walletOrbitRadius * Math.sin(walletAngle);
       
         computedNodes.push({
           id: `wallet-${walletAddress}`,
           type: "wallet",
           address: walletAddress,
           walletData: walletData,
-          val: 200, // Fixed size for wallet node
-          x: walletX,
+          val: 20000, // Fixed size for wallet node
+          x: 0,
           y: 0,
-          z: walletZ,
-          // fx: null, // Remove this line or change to undefined
+          z: 0,
           fy: 0, // Fixed Y position
-          // fz: null, // Remove this line or change to undefined
           orbitRadius: walletOrbitRadius,
           angle: walletAngle,
           orbitSpeed: 0.05, // Orbit speed
