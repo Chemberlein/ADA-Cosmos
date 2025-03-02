@@ -7,10 +7,15 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { TIMEFRAMES } from "../tokenInfo/types";
-import { Search } from "lucide-react";
+import { Search, Loader } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PortfolioPositionsResponse } from "@/interfaces/wallet";
+import { useApi } from "@/hooks/useApi";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { WalletApiService } from "@/services/WalletApiService";
+
+const walletApiService = new WalletApiService();
 
 const WalletHeader = ({
   address,
@@ -65,7 +70,7 @@ const AssetsTab = ({
         Fungible Tokens ({data.numFTs})
       </h3>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
         {data.positionsFt.map((token) => (
           <div key={token.unit} className="bg-zinc-800/50 p-3 rounded-lg">
             <div className="flex justify-between items-center">
@@ -86,7 +91,7 @@ const AssetsTab = ({
               {["24h", "7d", "30d"].map((period) => (
                 <div
                   key={period}
-                  className={`text-center p-1 rounded text-xs ${
+                  className={`text-center p-1 rounded text-[0.6rem] ${
                     Number(token[period as keyof typeof token]) >= 0
                       ? "bg-green-900/20 text-green-400"
                       : "bg-red-900/20 text-red-400"
@@ -101,7 +106,7 @@ const AssetsTab = ({
         ))}
 
         {data.positionsFt.length === 0 && (
-          <div className="text-center py-4 text-zinc-500">
+          <div className="text-center py-4 text-zinc-500 col-span-2">
             No tokens in this wallet.
           </div>
         )}
@@ -109,7 +114,6 @@ const AssetsTab = ({
     </div>
   );
 };
-
 const LiquidityTab = ({
   data,
 }: {
@@ -243,8 +247,10 @@ const NFTsTab = ({
 
 const SearchBar = ({
   onSearch,
+  isLoading,
 }: {
   onSearch: (address: string) => void;
+  isLoading: boolean;
 }) => {
   const [address, setAddress] = useState("");
 
@@ -264,14 +270,20 @@ const SearchBar = ({
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className="bg-zinc-800 border-zinc-700 text-zinc-200"
+          disabled={isLoading}
         />
         <Button
           type="submit"
           size="sm"
           variant="outline"
           className="bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20"
+          disabled={isLoading}
         >
-          <Search className="h-4 w-4" />
+          {isLoading ? (
+            <Loader className="h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </form>
@@ -279,84 +291,51 @@ const SearchBar = ({
 };
 
 export default function WalletExplorer() {
-  const [walletData, setWalletData] =
-    useState<PortfolioPositionsResponse | null>(null);
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [searchTrigger, setSearchTrigger] = useState<number>(0);
 
-  // In real implementation, this would fetch data from your API
+  // Using the useApi hook to fetch data when the address changes or search is triggered
+  const {
+    data: walletData,
+    loading,
+    error,
+  } = useApi<PortfolioPositionsResponse>(
+    () => walletApiService.getPortfolioPositions(walletAddress),
+    [walletAddress, searchTrigger]
+  );
+
   const handleSearch = (address: string) => {
     setWalletAddress(address);
-
-    // Mock data for demonstration
-    const mockData: PortfolioPositionsResponse = {
-      adaBalance: 10,
-      adaValue: 10010,
-      liquidValue: 10010,
-      numFTs: 2,
-      numNFTs: 1,
-      positionsFt: [
-        {
-          "24h": 0.11,
-          "30d": -0.32,
-          "7d": 0.03,
-          adaValue: 10000,
-          balance: 200,
-          fingerprint: "fingerprint1",
-          liquidBalance: 200,
-          liquidValue: 10000,
-          price: 100,
-          ticker: "TEST1",
-          unit: "b46b12f0a61721a0358988f806a7c1562e1e622d5886a73194051f336d6131",
-        },
-      ],
-      positionsLp: [
-        {
-          adaValue: 400,
-          amountLP: 100,
-          exchange: "Minswap",
-          ticker: "TEST2 / ADA LP",
-          tokenA:
-            "63bb8054f9142b46582198e280f489b3c928dfecb390b0cb39a5cbfe74657374746f6b656e32",
-          tokenAAmount: 100,
-          tokenAName: "TEST2",
-          tokenB: "string",
-          tokenBAmount: 200,
-          tokenBName: "ADA",
-          unit: "f22d56bc0daec9ff1e2d4d90061563517d279d3c998747d55234822874657374746f6b656e",
-        },
-      ],
-      positionsNft: [
-        {
-          "24h": 0.11,
-          "30d": -0.32,
-          "7d": 0.03,
-          adaValue: 10000,
-          balance: 2,
-          floorPrice: 1,
-          liquidValue: 10,
-          listings: 3,
-          name: "testCollection",
-          policy:
-            "4048d53202b57aec6eb8edd8e9e4196d8eeb9a5fe1dd50d6dfc67be3",
-        },
-      ],
-    };
-
-    setWalletData(mockData);
+    // Increment the search trigger to force a refetch
+    setSearchTrigger((prev) => prev + 1);
   };
 
   return (
     <div className="flex flex-col w-full text-zinc-200">
-      <SearchBar onSearch={handleSearch} />
+      <SearchBar onSearch={handleSearch} isLoading={loading} />
       <WalletHeader address={walletAddress} data={walletData} />
 
-      {!walletData && !walletAddress && (
+      {!walletData && !walletAddress && !loading && !error && (
         <div className="p-4 text-zinc-400 text-center">
           Enter a wallet address to view details.
         </div>
       )}
 
-      {walletAddress && (
+      {loading && (
+        <div className="p-4 flex justify-center items-center">
+          <Loader className="h-6 w-6 text-amber-500 animate-spin" />
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
+      {walletAddress && !loading && !error && (
         <Tabs defaultValue="assets" className="w-full">
           <TabsList className="w-full justify-around rounded-none border-b border-zinc-800 bg-transparent h-auto p-0">
             {["Assets", "Liquidity", "NFTs"].map((tab) => (
