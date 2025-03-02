@@ -1,7 +1,7 @@
 // contexts/SelectedTokenContext.tsx - Updated version
 "use client";
 
-import { TokenDataNode } from "@/app/(app)/dashboard/components/TokensGraphClient";
+import { TokenDataNode } from "@/app/(app)/dashboard/components/graph/types/graphTypes";
 import React, { createContext, useState, useContext } from "react";
 
 interface SelectedTokenContextType {

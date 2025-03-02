@@ -7,6 +7,7 @@ import {
   MAX_NODE_SIZE,
   ORBIT_GAP,
   OFFSET,
+  GeometryCache,
 } from "../types/graphTypes";
 import * as THREE from "three";
 import { TokenData, SunMarketData } from "../../data/getTokensData";
@@ -140,49 +141,49 @@ export function calculateNodeResolution(
  * Clean up resources for graph components
  */
 export function cleanupResources(
-  nodeLabelCache: Map<string, HTMLDivElement>,
-  geometryCache: Map<string, THREE.BufferGeometry>,
-  spaceshipMesh: THREE.Object3D | null,
-  simpleSpaceshipMesh: THREE.Object3D | null
-) {
-  // Clean up all cached DOM elements
-  nodeLabelCache.clear();
-
-  // Clean up all cached geometries
-  geometryCache.forEach((geometry) => {
-    geometry.dispose();
-  });
-  geometryCache.clear();
-
-  // Dispose spaceship meshes
-  if (spaceshipMesh) {
-    // Dispose all materials and geometries
-    spaceshipMesh.traverse((child) => {
-      if ((child as any).geometry) (child as any).geometry.dispose();
-      if ((child as any).material) {
-        if (Array.isArray((child as any).material)) {
-          (child as any).material.forEach((material: any) =>
-            material.dispose()
-          );
-        } else {
-          (child as any).material.dispose();
-        }
-      }
+    nodeLabelCache: Map<string, HTMLDivElement>,
+    geometryCache: GeometryCache, // Changed from Map<string, THREE.BufferGeometry>
+    spaceshipMesh: THREE.Object3D | null,
+    simpleSpaceshipMesh: THREE.Object3D | null
+  ) {
+    // Clean up all cached DOM elements
+    nodeLabelCache.clear();
+  
+    // Clean up all cached geometries
+    geometryCache.forEach((geometry) => {
+      geometry.dispose();
     });
-  }
-
-  if (simpleSpaceshipMesh) {
-    simpleSpaceshipMesh.traverse((child) => {
-      if ((child as any).geometry) (child as any).geometry.dispose();
-      if ((child as any).material) {
-        if (Array.isArray((child as any).material)) {
-          (child as any).material.forEach((material: any) =>
-            material.dispose()
-          );
-        } else {
-          (child as any).material.dispose();
+    geometryCache.clear();
+  
+    // Dispose spaceship meshes
+    if (spaceshipMesh) {
+      // Dispose all materials and geometries
+      spaceshipMesh.traverse((child) => {
+        if ((child as any).geometry) (child as any).geometry.dispose();
+        if ((child as any).material) {
+          if (Array.isArray((child as any).material)) {
+            (child as any).material.forEach((material: any) =>
+              material.dispose()
+            );
+          } else {
+            (child as any).material.dispose();
+          }
         }
-      }
-    });
+      });
+    }
+  
+    if (simpleSpaceshipMesh) {
+      simpleSpaceshipMesh.traverse((child) => {
+        if ((child as any).geometry) (child as any).geometry.dispose();
+        if ((child as any).material) {
+          if (Array.isArray((child as any).material)) {
+            (child as any).material.forEach((material: any) =>
+              material.dispose()
+            );
+          } else {
+            (child as any).material.dispose();
+          }
+        }
+      });
+    }
   }
-}

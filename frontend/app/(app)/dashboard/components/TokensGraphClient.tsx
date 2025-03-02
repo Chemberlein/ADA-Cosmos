@@ -168,9 +168,9 @@ const TokensGraphClient: React.FC<TokensGraphProps> = memo(
                 orbitGap: 30,
                 offset: 3,
                 circles: tokens.length,
-                radialLines:
-                  loadingStage === LoadingStates.COMPLETE ? 16 : 8,
+                radialLines: 6,
               });
+              
               polarGrid.name = "polar-grid";
 
               // Enable frustum culling
