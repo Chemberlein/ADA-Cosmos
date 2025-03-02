@@ -8,7 +8,7 @@ import React, {
 	useCallback,
 } from "react";
 import ForceGraph3D from "react-force-graph-3d";
-import rawGraphData from "../../../../graphData/graphV2.json";
+import rawGraphData from "./utils/graphV2";
 import { Controls } from "./components/Controls";
 import { GraphData, GraphNode } from "./types";
 import { GRAPH_CONSTANTS } from "./constants";
