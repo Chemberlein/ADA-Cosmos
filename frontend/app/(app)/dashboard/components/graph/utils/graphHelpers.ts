@@ -81,7 +81,7 @@ export function constructNodes(
       type: "wallet",
       address: walletAddress,
       walletData: walletData,
-      val: 200, // Fixed size for wallet node
+      val: 2000, // Fixed size for wallet node
       x: walletX,
       y: 0,
       z: walletZ,
