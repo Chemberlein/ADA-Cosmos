@@ -1,7 +1,12 @@
+// app/(app)/dashboard/components/graph/hooks/useBloomPass.ts
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+/**
+ * Hook to add a bloom pass effect to the force graph
+ * Creates a glow effect for bright objects
+ */
 export function useBloomPass(fgRef: React.RefObject<any>) {
   useEffect(() => {
     const interval = setInterval(() => {

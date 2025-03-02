@@ -47,7 +47,7 @@ export default function TokenStats() {
       const mapKey =
         TIMEFRAME_MAPPING[tf as keyof typeof TIMEFRAME_MAPPING];
       const data = selectedToken.ohlcv.find(
-        (item) => item.timeframe === mapKey
+        (item: { timeframe: string; }) => item.timeframe === mapKey
       );
       acc[tf] =
         data && data.stats.open !== 0
