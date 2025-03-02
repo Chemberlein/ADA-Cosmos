@@ -47,8 +47,8 @@ export function createWalletNodeObject({
       : simpleSpaceshipMesh?.clone();
 
   if (spaceship) {
-    // Scale the spaceship appropriately
-    spaceship.scale.set(0.3, 0.3, 0.3);
+    // Scale the spaceship appropriately - INCREASE SIZE FOR BETTER VISIBILITY
+    spaceship.scale.set(1.5, 1.5, 1.5); // Increased from 0.3 to 1.5
 
     // Rotate to face direction of travel
     spaceship.rotation.y = Math.PI / 2;
@@ -59,14 +59,35 @@ export function createWalletNodeObject({
       spaceship.rotation.y = node.angle + Math.PI / 2;
     }
 
-    // Add thruster lights for completed loading state
+    // Add thruster lights for completed loading state with INCREASED INTENSITY
     if (loadingStage === LoadingStates.COMPLETE) {
-      const thrusterLight = new THREE.PointLight(0x3366ff, 1, 10);
+      const thrusterLight = new THREE.PointLight(0x3366ff, 3, 20); // Increased intensity and range
       thrusterLight.position.set(-1.5, 0, 0);
       spaceship.add(thrusterLight);
+
+      // Add a glow material to make the spaceship more visible
+      spaceship.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          // Make materials emissive to improve visibility
+          if (mesh.material) {
+            const material = mesh.material as THREE.MeshStandardMaterial;
+            if (material.color) {
+              material.emissive = new THREE.Color(0x222266);
+              material.emissiveIntensity = 0.5;
+            }
+          }
+        }
+      });
     }
 
     group.add(spaceship);
+  } else {
+    // Fallback if spaceship mesh is not available - add a visible placeholder
+    const geometry = new THREE.SphereGeometry(5, 16, 16);
+    const material = new THREE.MeshBasicMaterial({ color: 0x3366ff });
+    const sphere = new THREE.Mesh(geometry, material);
+    group.add(sphere);
   }
 
   // Add label if needed
@@ -80,16 +101,16 @@ export function createWalletNodeObject({
       nodeEl.style.color = "#ffffff";
       nodeEl.style.fontSize = "12px";
       nodeEl.style.fontWeight = "bold";
-      nodeEl.style.backgroundColor = "rgba(0, 0, 0, 0.25)";
+      nodeEl.style.backgroundColor = "rgba(0, 0, 0, 0.5)"; // More opaque background
       nodeEl.style.borderRadius = "6px";
-      nodeEl.style.padding = "1px 4px";
+      nodeEl.style.padding = "2px 6px"; // Increased padding
 
       // Store for reuse
       nodeLabelCache.set(node.id, nodeEl);
     }
 
     const labelObj = new CSS2DObject(nodeEl);
-    labelObj.position.set(0, 2, 0);
+    labelObj.position.set(0, 6, 0); // Position label higher above the spaceship
     group.add(labelObj);
   }
 
