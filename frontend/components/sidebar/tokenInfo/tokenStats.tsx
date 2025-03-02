@@ -1,3 +1,4 @@
+// components/sidebar/tokenInfo/tokenStats.tsx - Updated version
 "use client";
 import React, { useState } from "react";
 import {
@@ -16,15 +17,19 @@ import WalletExplorer from "../walletExplorer/walletExplorer";
 import { usePathname } from "next/navigation";
 
 export default function TokenStats() {
-  const { selectedToken } = useSelectedToken();
+  const { selectedToken, walletAddress } = useSelectedToken();
   const [selectedTimeframe, setSelectedTimeframe] = useState("24h");
   const pathname = usePathname();
 
-  // Check if wallet explorer is active (selectedToken is null and we're on dashboard)
+  // Check if wallet explorer is active (selectedToken is null, walletAddress is null, and we're on dashboard)
   const isWalletExplorerActive =
-    !selectedToken && pathname === "/dashboard";
+    !selectedToken && !walletAddress && pathname === "/dashboard";
 
-  if (isWalletExplorerActive) {
+  // Check if wallet data is being shown (walletAddress exists)
+  const isWalletDataShown =
+    !selectedToken && walletAddress && pathname === "/dashboard";
+
+  if (isWalletExplorerActive || isWalletDataShown) {
     return <WalletExplorer />;
   }
 

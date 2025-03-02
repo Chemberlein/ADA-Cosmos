@@ -1,12 +1,12 @@
+// components/sidebar/walletExplorer/walletExplorer.tsx - Updated version
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { TIMEFRAMES } from "../tokenInfo/types";
 import { Search, Loader } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { PortfolioPositionsResponse } from "@/interfaces/wallet";
 import { useApi } from "@/hooks/useApi";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WalletApiService } from "@/services/WalletApiService";
+import { useSelectedToken } from "@/contexts/SelectedTokenContext";
 
 const walletApiService = new WalletApiService();
 
@@ -304,18 +305,27 @@ const SearchBar = ({
 };
 
 export default function WalletExplorer() {
-  const [walletAddress, setWalletAddress] = useState<string>("");
+  // Use the context for wallet state
+  const { walletAddress, setWalletAddress, walletData, setWalletData } =
+    useSelectedToken();
   const [searchTrigger, setSearchTrigger] = useState<number>(0);
 
   // Using the useApi hook to fetch data when the address changes or search is triggered
   const {
-    data: walletData,
+    data: fetchedWalletData,
     loading,
     error,
   } = useApi<PortfolioPositionsResponse>(
-    () => walletApiService.getPortfolioPositions(walletAddress),
+    () => walletApiService.getPortfolioPositions(walletAddress || ""),
     [walletAddress, searchTrigger]
   );
+
+  // Update context when new data is fetched
+  useEffect(() => {
+    if (fetchedWalletData && !loading && !error) {
+      setWalletData(fetchedWalletData);
+    }
+  }, [fetchedWalletData, loading, error, setWalletData]);
 
   const handleSearch = (address: string) => {
     setWalletAddress(address);
@@ -326,7 +336,7 @@ export default function WalletExplorer() {
   return (
     <div className="flex flex-col w-full text-zinc-200">
       <SearchBar onSearch={handleSearch} isLoading={loading} />
-      <WalletHeader address={walletAddress} data={walletData} />
+      <WalletHeader address={walletAddress || ""} data={walletData} />
 
       {!walletData && !walletAddress && !loading && !error && (
         <div className="p-4 text-zinc-400 text-center">

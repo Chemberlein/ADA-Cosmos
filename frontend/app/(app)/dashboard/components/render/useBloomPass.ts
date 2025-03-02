@@ -17,7 +17,7 @@ export function useBloomPass(fgRef: React.RefObject<any>) {
             0.4,
             0.85
           );
-          bloomPass.strength = 3;
+          bloomPass.strength = 2;
           bloomPass.radius = 1;
           bloomPass.threshold = 0;
           composer.addPass(bloomPass);

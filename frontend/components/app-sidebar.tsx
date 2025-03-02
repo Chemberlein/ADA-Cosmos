@@ -1,3 +1,4 @@
+// components/app-sidebar.tsx - Updated version
 "use client";
 
 import {
@@ -57,7 +58,8 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { setSelectedToken } = useSelectedToken();
+  const { setSelectedToken, setWalletAddress, setWalletData } =
+    useSelectedToken();
 
   const handleItemClick = (
     item: (typeof items)[0],
@@ -73,6 +75,19 @@ export function AppSidebar() {
       if (pathname !== "/dashboard") {
         router.push("/dashboard");
       }
+    }
+  };
+
+  // Function to clear wallet data when clicking on Solar System
+  const handleNavigation = (
+    item: (typeof items)[0],
+    e: React.MouseEvent
+  ) => {
+    // If clicking on Solar System, clear wallet selection
+    if (item.title === "Solar System" && item.url === "/dashboard") {
+      setWalletAddress(null);
+      setWalletData(null);
+      // Don't clear selected token as that would hide token details if a token is selected
     }
   };
 
@@ -112,7 +127,10 @@ export function AppSidebar() {
                           <span>{item.title}</span>
                         </a>
                       ) : (
-                        <Link href={item.url}>
+                        <Link
+                          href={item.url}
+                          onClick={(e) => handleNavigation(item, e)}
+                        >
                           <item.icon />
                           <span>{item.title}</span>
                         </Link>
