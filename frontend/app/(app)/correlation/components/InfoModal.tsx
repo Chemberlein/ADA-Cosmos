@@ -20,6 +20,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
         <h2 className="text-xl font-bold mb-4">About Graph Visualization</h2>
         <div className="space-y-3">
           <p>This graph shows correlations between different assets.</p>
+          <p>Understanding the correlation of stock price log returns is paramount for effective diversification, as it directly dictates the potential for risk reduction within a portfolio; lower correlations between assets enable greater diversification benefits by mitigating the impact of individual asset performance, ultimately leading to smoother, more stable returns and enhancing the portfolio's overall resilience against market volatility. Thus, careful consideration of correlation is essential for investors seeking to optimize their risk-adjusted returns through strategic diversification.</p>
           <p>• Node size represents liquidity</p>
           <p>• Node color indicates price changes</p>
           <p>• Link thickness shows correlation strength</p>
