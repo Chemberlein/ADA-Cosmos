@@ -23,36 +23,49 @@ const WalletHeader = ({
 }: {
   address: string;
   data: PortfolioPositionsResponse | null;
-}) => (
-  <div className="flex flex-col gap-2 border-b border-zinc-800 p-3 pt-1">
-    <div className="flex items-center justify-between">
-      <h2 className="text-lg font-semibold text-zinc-100">
-        Wallet Explorer
-      </h2>
+}) => {
+  const formatAddress = (addr: string) => {
+    if (!addr) return "";
+    if (addr.length <= 15) return addr;
+
+    const start = addr.substring(0, 25);
+    const end = addr.substring(addr.length - 10);
+    return `${start}.......${end}`;
+  };
+
+  return (
+    <div className="flex flex-col gap-2 border-b border-zinc-800 p-3 pt-1">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          Wallet Explorer
+        </h2>
+      </div>
+      {address && (
+        <div className="bg-zinc-900 p-2 rounded-md">
+          <p className="text-md text-zinc-400 text-center">
+            {formatAddress(address)}
+          </p>
+        </div>
+      )}
+      {data && (
+        <div className="grid grid-cols-2 gap-2 mt-1">
+          <div className="bg-zinc-800/50 p-2 rounded-lg">
+            <p className="text-xs text-zinc-400">Portfolio Value</p>
+            <p className="text-sm font-medium text-zinc-100">
+              {data?.liquidValue?.toLocaleString()} ₳
+            </p>
+          </div>
+          <div className="bg-zinc-800/50 p-2 rounded-lg">
+            <p className="text-xs text-zinc-400">ADA Balance</p>
+            <p className="text-sm font-medium text-zinc-100">
+              {data?.adaBalance?.toLocaleString()} ₳
+            </p>
+          </div>
+        </div>
+      )}
     </div>
-    {address && (
-      <div className="bg-zinc-900 p-2 rounded-md">
-        <p className="text-xs text-zinc-400 truncate">{address}</p>
-      </div>
-    )}
-    {data && (
-      <div className="grid grid-cols-2 gap-2 mt-1">
-        <div className="bg-zinc-800/50 p-2 rounded-lg">
-          <p className="text-xs text-zinc-400">Portfolio Value</p>
-          <p className="text-sm font-medium text-zinc-100">
-            {data.liquidValue.toLocaleString()} ₳
-          </p>
-        </div>
-        <div className="bg-zinc-800/50 p-2 rounded-lg">
-          <p className="text-xs text-zinc-400">ADA Balance</p>
-          <p className="text-sm font-medium text-zinc-100">
-            {data.adaBalance.toLocaleString()} ₳
-          </p>
-        </div>
-      </div>
-    )}
-  </div>
-);
+  );
+};
 
 const AssetsTab = ({
   data,
@@ -327,7 +340,7 @@ export default function WalletExplorer() {
         </div>
       )}
 
-      {error && (
+      {error && walletAddress && (
         <div className="p-4">
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
